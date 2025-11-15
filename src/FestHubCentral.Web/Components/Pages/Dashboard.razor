@@ -145,6 +145,7 @@
     private int totalVendors = 0;
     private int lowStockCount = 0;
     private int alertCount = 0;
+    private readonly SemaphoreSlim _loadDataSemaphore = new(1, 1);
 
     protected override async Task OnInitializedAsync()
     {
@@ -155,24 +156,32 @@
 
     private async Task LoadData()
     {
-        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
-        alerts = (await AlertService.GetUnresolvedAlertsAsync()).ToList();
+        await _loadDataSemaphore.WaitAsync();
+        try
+        {
+            vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+            alerts = (await AlertService.GetUnresolvedAlertsAsync()).ToList();
 
-        var today = DateTime.UtcNow.Date;
-        var todayUtc = DateTime.SpecifyKind(today, DateTimeKind.Utc);
+            var today = DateTime.UtcNow.Date;
+            var todayUtc = DateTime.SpecifyKind(today, DateTimeKind.Utc);
 
-        topProducts = (await OrderService.GetTopSellingProductsAsync(10, todayUtc)).ToList();
-        totalSales = await OrderService.GetTotalSalesByDateAsync(todayUtc);
-        var allOrders = await OrderService.GetOrdersByDateRangeAsync(todayUtc, todayUtc.AddDays(1));
-        orderCount = allOrders.Count();
+            topProducts = (await OrderService.GetTopSellingProductsAsync(10, todayUtc)).ToList();
+            totalSales = await OrderService.GetTotalSalesByDateAsync(todayUtc);
+            var allOrders = await OrderService.GetOrdersByDateRangeAsync(todayUtc, todayUtc.AddDays(1));
+            orderCount = allOrders.Count();
 
-        openVendors = vendors.Count(v => v.IsOpen);
-        totalVendors = vendors.Count;
+            openVendors = vendors.Count(v => v.IsOpen);
+            totalVendors = vendors.Count;
 
-        var lowStockItems = await InventoryService.GetLowStockItemsAsync();
-        lowStockCount = lowStockItems.Count();
+            var lowStockItems = await InventoryService.GetLowStockItemsAsync();
+            lowStockCount = lowStockItems.Count();
 
-        alertCount = alerts.Count;
+            alertCount = alerts.Count;
+        }
+        finally
+        {
+            _loadDataSemaphore.Release();
+        }
     }
 
     private async Task InitializeSignalR()
@@ -243,5 +252,6 @@
         {
             await hubConnection.DisposeAsync();
         }
+        _loadDataSemaphore.Dispose();
     }
 }

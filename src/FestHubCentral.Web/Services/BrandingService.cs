@@ -9,6 +9,9 @@ public class BrandingService : IBrandingService
 {
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _environment;
+    private static readonly SemaphoreSlim _semaphore = new(1, 1);
+    private static BrandingSettings? _cachedSettings;
+    private static DateTime _cacheExpiration = DateTime.MinValue;
 
     public BrandingService(ApplicationDbContext context, IWebHostEnvironment environment)
     {
@@ -18,49 +21,82 @@ public class BrandingService : IBrandingService
 
     public async Task<BrandingSettings> GetBrandingSettingsAsync()
     {
-        var settings = await _context.BrandingSettings.FirstOrDefaultAsync();
-
-        if (settings == null)
+        if (_cachedSettings != null && DateTime.UtcNow < _cacheExpiration)
         {
-            settings = new BrandingSettings
-            {
-                FestivalName = "FestHub Central",
-                PrimaryColor = "#6366f1",
-                SecondaryColor = "#8b5cf6",
-                AccentColor = "#ec4899",
-                Tagline = "Real-time festival gastronomy management",
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _context.BrandingSettings.Add(settings);
-            await _context.SaveChangesAsync();
+            return _cachedSettings;
         }
 
-        return settings;
+        await _semaphore.WaitAsync();
+        try
+        {
+            if (_cachedSettings != null && DateTime.UtcNow < _cacheExpiration)
+            {
+                return _cachedSettings;
+            }
+
+            var settings = await _context.BrandingSettings.AsNoTracking().FirstOrDefaultAsync();
+
+            if (settings == null)
+            {
+                settings = new BrandingSettings
+                {
+                    FestivalName = "FestHub Central",
+                    PrimaryColor = "#6366f1",
+                    SecondaryColor = "#8b5cf6",
+                    AccentColor = "#ec4899",
+                    Tagline = "Real-time festival gastronomy management",
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.BrandingSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+
+            _cachedSettings = settings;
+            _cacheExpiration = DateTime.UtcNow.AddMinutes(5);
+
+            return settings;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     public async Task<BrandingSettings> UpdateBrandingSettingsAsync(BrandingSettings settings)
     {
-        var existing = await _context.BrandingSettings.FirstOrDefaultAsync();
-
-        if (existing == null)
+        await _semaphore.WaitAsync();
+        try
         {
-            _context.BrandingSettings.Add(settings);
-        }
-        else
-        {
-            existing.FestivalName = settings.FestivalName;
-            existing.LogoPath = settings.LogoPath;
-            existing.PrimaryColor = settings.PrimaryColor;
-            existing.SecondaryColor = settings.SecondaryColor;
-            existing.AccentColor = settings.AccentColor;
-            existing.Tagline = settings.Tagline;
-            existing.UpdatedAt = DateTime.UtcNow;
-            existing.UpdatedBy = settings.UpdatedBy;
-        }
+            var existing = await _context.BrandingSettings.FirstOrDefaultAsync();
 
-        await _context.SaveChangesAsync();
-        return existing ?? settings;
+            if (existing == null)
+            {
+                _context.BrandingSettings.Add(settings);
+            }
+            else
+            {
+                existing.FestivalName = settings.FestivalName;
+                existing.LogoPath = settings.LogoPath;
+                existing.PrimaryColor = settings.PrimaryColor;
+                existing.SecondaryColor = settings.SecondaryColor;
+                existing.AccentColor = settings.AccentColor;
+                existing.Tagline = settings.Tagline;
+                existing.UpdatedAt = DateTime.UtcNow;
+                existing.UpdatedBy = settings.UpdatedBy;
+            }
+
+            await _context.SaveChangesAsync();
+
+            _cachedSettings = existing ?? settings;
+            _cacheExpiration = DateTime.UtcNow.AddMinutes(5);
+
+            return existing ?? settings;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     public async Task<string> SaveLogoAsync(Stream fileStream, string fileName)

@@ -1,0 +1,260 @@
+@page "/account/login"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Services.Interfaces
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@attribute [AllowAnonymous]
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResources> Localizer
+@inject IBrandingService BrandingService
+
+<PageTitle>Login</PageTitle>
+
+<div class="login-container">
+    <div class="login-card">
+        @if (brandingSettings != null)
+        {
+            <div class="login-header">
+                @if (!string.IsNullOrEmpty(brandingSettings.LogoPath))
+                {
+                    <img src="@brandingSettings.LogoPath" alt="Logo" class="login-logo" />
+                }
+                else
+                {
+                    <span class="login-icon">🎪</span>
+                }
+                <h2>@(brandingSettings.FestivalName ?? "FestHub Central")</h2>
+                <p>Sign in to your account</p>
+            </div>
+        }
+        else
+        {
+            <div class="login-header">
+                <h2>🎪 FestHub Central</h2>
+                <p>Sign in to your account</p>
+            </div>
+        }
+
+        <EditForm Model="loginModel ?? new LoginModel()" OnValidSubmit="HandleLogin" FormName="loginForm" method="post">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="loginModel!.Email" class="form-control" placeholder="your@email.com" />
+                <ValidationMessage For="@(() => loginModel!.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password" type="password" @bind-Value="loginModel!.Password" class="form-control" placeholder="••••••••" />
+                <ValidationMessage For="@(() => loginModel!.Password)" />
+            </div>
+
+            <div class="form-check">
+                <InputCheckbox id="rememberMe" @bind-Value="loginModel!.RememberMe" class="form-check-input" />
+                <label class="form-check-label" for="rememberMe">
+                    Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                Sign In
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f5f8fb;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-logo {
+        max-width: 120px;
+        max-height: 80px;
+        margin-bottom: 1rem;
+        object-fit: contain;
+    }
+
+    .login-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .login-header h2 {
+        color: #1e3a5f;
+        margin-bottom: 0.5rem;
+        font-size: 1.75rem;
+    }
+
+    .login-header p {
+        color: #5a6c7d;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+        font-weight: 500;
+        font-size: 0.9375rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid #e1e8ed;
+        border-radius: 6px;
+        font-size: 0.9375rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #1e5a9e;
+        box-shadow: 0 0 0 3px rgba(30, 90, 158, 0.1);
+    }
+
+    .form-check {
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-check-input {
+        margin-right: 0.5rem;
+    }
+
+    .form-check-label {
+        color: #5a6c7d;
+        font-size: 0.9375rem;
+    }
+
+    .btn-block {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.25rem;
+    }
+
+    .alert-danger {
+        background-color: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+    }
+</style>
+
+@code {
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private LoginModel? loginModel { get; set; }
+
+    private string? errorMessage;
+    private BrandingSettings? brandingSettings;
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        loginModel ??= new LoginModel();
+        brandingSettings = await BrandingService.GetBrandingSettingsAsync();
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        if (loginModel == null)
+            return;
+
+        errorMessage = null;
+
+        try
+        {
+            var result = await SignInManager.PasswordSignInAsync(
+                loginModel.Email,
+                loginModel.Password,
+                loginModel.RememberMe,
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
+            {
+                var user = await UserManager.FindByEmailAsync(loginModel.Email);
+                if (user?.RequiresPasswordChange == true)
+                {
+                    Navigation.NavigateTo("/account/change-password", forceLoad: true);
+                }
+                else
+                {
+                    Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+                }
+            }
+            else
+            {
+                errorMessage = "Invalid email or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}

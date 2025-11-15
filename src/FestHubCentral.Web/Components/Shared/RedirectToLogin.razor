@@ -1,0 +1,14 @@
+@inject NavigationManager Navigation
+
+<p>Redirecting to login...</p>
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var returnUrl = Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri));
+            Navigation.NavigateTo($"/account/login?returnUrl={returnUrl}");
+        }
+    }
+}
