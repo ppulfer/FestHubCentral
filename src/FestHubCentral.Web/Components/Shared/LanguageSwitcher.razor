@@ -1,0 +1,85 @@
+@using FestHubCentral.Web.Services.Interfaces
+@using System.Globalization
+@inject ILanguageService LanguageService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="language-switcher">
+    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        @GetFlagEmoji(currentCulture) @GetLanguageName(currentCulture)
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+            <button class="dropdown-item @(currentCulture == "en" ? "active" : "")" @onclick="@(() => ChangeLanguage("en"))">
+                🇬🇧 English
+            </button>
+        </li>
+        <li>
+            <button class="dropdown-item @(currentCulture == "de" ? "active" : "")" @onclick="@(() => ChangeLanguage("de"))">
+                🇩🇪 Deutsch
+            </button>
+        </li>
+    </ul>
+</div>
+
+<style>
+    .language-switcher {
+        display: inline-block;
+    }
+
+    .language-switcher .dropdown-item.active {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+</style>
+
+@code {
+    private string currentCulture = "en";
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentCulture = await LanguageService.GetCultureAsync();
+        LanguageService.CultureChanged += OnCultureChanged;
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs e)
+    {
+        currentCulture = LanguageService.CurrentCulture.Name;
+        StateHasChanged();
+    }
+
+    private async Task ChangeLanguage(string culture)
+    {
+        if (currentCulture == culture) return;
+
+        await LanguageService.SetCultureAsync(culture);
+        currentCulture = culture;
+
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+
+    private string GetFlagEmoji(string culture)
+    {
+        return culture switch
+        {
+            "en" => "🇬🇧",
+            "de" => "🇩🇪",
+            _ => "🌐"
+        };
+    }
+
+    private string GetLanguageName(string culture)
+    {
+        return culture switch
+        {
+            "en" => "English",
+            "de" => "Deutsch",
+            _ => "Language"
+        };
+    }
+
+    public void Dispose()
+    {
+        LanguageService.CultureChanged -= OnCultureChanged;
+    }
+}

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Navigation -->
+  <data name="Nav.Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Nav.Vendors" xml:space="preserve">
+    <value>Vendors</value>
+  </data>
+  <data name="Nav.Inventory" xml:space="preserve">
+    <value>Inventory</value>
+  </data>
+  <data name="Nav.Orders" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Nav.CashRegisters" xml:space="preserve">
+    <value>Cash Registers</value>
+  </data>
+  <data name="Nav.Alerts" xml:space="preserve">
+    <value>Alerts</value>
+  </data>
+  <data name="Nav.Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+
+  <!-- Dashboard -->
+  <data name="Dashboard.Title" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Dashboard.Tagline" xml:space="preserve">
+    <value>Real-time festival gastronomy management</value>
+  </data>
+  <data name="Dashboard.TodaysSales" xml:space="preserve">
+    <value>Today's Sales</value>
+  </data>
+  <data name="Dashboard.Orders" xml:space="preserve">
+    <value>orders</value>
+  </data>
+  <data name="Dashboard.VendorsOpen" xml:space="preserve">
+    <value>Vendors Open</value>
+  </data>
+  <data name="Dashboard.TotalVendors" xml:space="preserve">
+    <value>total vendors</value>
+  </data>
+  <data name="Dashboard.LowStockItems" xml:space="preserve">
+    <value>Low Stock Items</value>
+  </data>
+  <data name="Dashboard.RequiresAttention" xml:space="preserve">
+    <value>Requires attention</value>
+  </data>
+  <data name="Dashboard.ActiveAlerts" xml:space="preserve">
+    <value>Active Alerts</value>
+  </data>
+  <data name="Dashboard.UnresolvedIssues" xml:space="preserve">
+    <value>Unresolved issues</value>
+  </data>
+  <data name="Dashboard.FestivalGroundsMap" xml:space="preserve">
+    <value>Festival Grounds Map</value>
+  </data>
+  <data name="Dashboard.Spot" xml:space="preserve">
+    <value>Spot</value>
+  </data>
+  <data name="Dashboard.Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Dashboard.Closed" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="Dashboard.Available" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="Dashboard.TopSellingProducts" xml:space="preserve">
+    <value>Top Selling Products</value>
+  </data>
+  <data name="Dashboard.ViewAllAlerts" xml:space="preserve">
+    <value>View All ({0}) Alerts</value>
+  </data>
+  <data name="Dashboard.NoActiveAlerts" xml:space="preserve">
+    <value>No active alerts</value>
+  </data>
+  <data name="Dashboard.NoSalesData" xml:space="preserve">
+    <value>No sales data available</value>
+  </data>
+
+  <!-- Settings -->
+  <data name="Settings.Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings.Description" xml:space="preserve">
+    <value>Customize your festival's branding and appearance</value>
+  </data>
+  <data name="Settings.FestivalBranding" xml:space="preserve">
+    <value>Festival Branding</value>
+  </data>
+  <data name="Settings.FestivalName" xml:space="preserve">
+    <value>Festival Name</value>
+  </data>
+  <data name="Settings.FestivalNamePlaceholder" xml:space="preserve">
+    <value>e.g., Wümmetfest Höngg</value>
+  </data>
+  <data name="Settings.Tagline" xml:space="preserve">
+    <value>Tagline</value>
+  </data>
+  <data name="Settings.TaglinePlaceholder" xml:space="preserve">
+    <value>e.g., Your festival motto</value>
+  </data>
+  <data name="Settings.PrimaryColor" xml:space="preserve">
+    <value>Primary Color</value>
+  </data>
+  <data name="Settings.SecondaryColor" xml:space="preserve">
+    <value>Secondary Color</value>
+  </data>
+  <data name="Settings.AccentColor" xml:space="preserve">
+    <value>Accent Color</value>
+  </data>
+  <data name="Settings.FestivalLogo" xml:space="preserve">
+    <value>Festival Logo</value>
+  </data>
+  <data name="Settings.UploadLogo" xml:space="preserve">
+    <value>Upload a logo image (PNG, JPG, SVG recommended)</value>
+  </data>
+  <data name="Settings.SaveChanges" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="Settings.Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Settings.Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Settings.SettingsSaved" xml:space="preserve">
+    <value>Settings saved successfully!</value>
+  </data>
+  <data name="Settings.LogoUploaded" xml:space="preserve">
+    <value>Logo uploaded successfully!</value>
+  </data>
+  <data name="Settings.Selected" xml:space="preserve">
+    <value>Selected: {0}</value>
+  </data>
+  <data name="Settings.ErrorSaving" xml:space="preserve">
+    <value>Error saving settings: {0}</value>
+  </data>
+  <data name="Settings.LoadingSettings" xml:space="preserve">
+    <value>Loading settings...</value>
+  </data>
+  <data name="Settings.Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings.LanguageDescription" xml:space="preserve">
+    <value>Choose your preferred language</value>
+  </data>
+
+  <!-- Common -->
+  <data name="Common.Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Common.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+</root>

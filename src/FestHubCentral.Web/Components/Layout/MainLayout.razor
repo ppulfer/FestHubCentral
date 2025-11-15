@@ -1,5 +1,6 @@
 ﻿@using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Components.Shared
 @inject IBrandingService BrandingService
 @inherits LayoutComponentBase
 
@@ -11,8 +12,9 @@
         </div>
 
         <main>
-            <div class="top-row px-4">
+            <div class="top-row px-4 d-flex justify-content-between align-items-center">
                 <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                <LanguageSwitcher />
             </div>
 
             <article class="content px-4">

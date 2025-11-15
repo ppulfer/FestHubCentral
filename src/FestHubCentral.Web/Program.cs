@@ -4,10 +4,19 @@ using FestHubCentral.Web.Hubs;
 using FestHubCentral.Web.Services;
 using FestHubCentral.Web.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using Microsoft.Extensions.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+var supportedCultures = new[] { "en", "de" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en")
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -20,6 +29,7 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 builder.Services.AddScoped<IBrandingService, BrandingService>();
+builder.Services.AddScoped<ILanguageService, LanguageService>();
 
 builder.Services.AddSignalR();
 
@@ -34,6 +44,8 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
 

@@ -2,17 +2,20 @@
 @using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Components.Shared
 @using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Resources
 @using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.Extensions.Localization
 @inject IVendorService VendorService
 @inject IOrderService OrderService
 @inject IAlertService AlertService
 @inject IInventoryService InventoryService
 @inject IBrandingService BrandingService
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResources> Localizer
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Dashboard - @(brandingSettings?.FestivalName ?? "FestHub Central")</PageTitle>
+<PageTitle>@Localizer["Dashboard.Title"] - @(brandingSettings?.FestivalName ?? "FestHub Central")</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
@@ -26,9 +29,9 @@
                 {
                     <span>🎪 </span>
                 }
-                @(brandingSettings?.FestivalName ?? "FestHub Central") Dashboard
+                @(brandingSettings?.FestivalName ?? "FestHub Central") @Localizer["Dashboard.Title"]
             </h1>
-            <p class="text-muted">@(brandingSettings?.Tagline ?? "Real-time festival gastronomy management")</p>
+            <p class="text-muted">@(brandingSettings?.Tagline ?? Localizer["Dashboard.Tagline"].Value)</p>
         </div>
     </div>
 
@@ -36,50 +39,50 @@
         <StatCard
             Icon="💰"
             Value="@totalSales.ToString("C")"
-            Label="Today's Sales"
-            SubText="@($"{orderCount} orders")"
+            Label="@Localizer["Dashboard.TodaysSales"]"
+            SubText="@($"{orderCount} {Localizer["Dashboard.Orders"]}")"
             CssClass="stat-card-success" />
 
         <StatCard
             Icon="🏪"
             Value="@openVendors.ToString()"
-            Label="Vendors Open"
-            SubText="@($"{totalVendors} total vendors")" />
+            Label="@Localizer["Dashboard.VendorsOpen"]"
+            SubText="@($"{totalVendors} {Localizer["Dashboard.TotalVendors"]}")" />
 
         <StatCard
             Icon="📦"
             Value="@lowStockCount.ToString()"
-            Label="Low Stock Items"
-            SubText="Requires attention"
+            Label="@Localizer["Dashboard.LowStockItems"]"
+            SubText="@Localizer["Dashboard.RequiresAttention"]"
             CssClass="@(lowStockCount > 0 ? "stat-card-warning" : "")" />
 
         <StatCard
             Icon="🚨"
             Value="@alertCount.ToString()"
-            Label="Active Alerts"
-            SubText="Unresolved issues"
+            Label="@Localizer["Dashboard.ActiveAlerts"]"
+            SubText="@Localizer["Dashboard.UnresolvedIssues"]"
             CssClass="@(alertCount > 0 ? "stat-card-danger" : "")" />
     </div>
 
     <div class="row">
         <div class="col-md-8">
             <div class="section-card">
-                <h2 class="section-title">Festival Grounds Map</h2>
+                <h2 class="section-title">@Localizer["Dashboard.FestivalGroundsMap"]</h2>
                 <div class="vendor-grid">
                     @for (int i = 1; i <= 15; i++)
                     {
                         var spot = i;
                         var vendor = vendors.FirstOrDefault(v => v.LocationSpot == spot);
                         <div class="vendor-spot @GetSpotClass(vendor)" @onclick="() => NavigateToVendor(vendor?.Id)">
-                            <div class="vendor-spot-number">Spot @spot</div>
+                            <div class="vendor-spot-number">@Localizer["Dashboard.Spot"] @spot</div>
                             @if (vendor != null)
                             {
                                 <div class="vendor-name">@vendor.Name</div>
-                                <StatusBadge Text="@(vendor.IsOpen ? "Open" : "Closed")" Status="@(vendor.IsOpen ? "open" : "closed")" />
+                                <StatusBadge Text="@(vendor.IsOpen ? Localizer["Dashboard.Open"].Value : Localizer["Dashboard.Closed"].Value)" Status="@(vendor.IsOpen ? "open" : "closed")" />
                             }
                             else
                             {
-                                <div class="text-muted">Available</div>
+                                <div class="text-muted">@Localizer["Dashboard.Available"]</div>
                             }
                         </div>
                     }
@@ -89,7 +92,7 @@
 
         <div class="col-md-4">
             <div class="section-card">
-                <h2 class="section-title">Active Alerts</h2>
+                <h2 class="section-title">@Localizer["Dashboard.ActiveAlerts"]</h2>
                 @if (alerts.Any())
                 {
                     @foreach (var alert in alerts.Take(5))
@@ -99,18 +102,18 @@
                     @if (alerts.Count() > 5)
                     {
                         <a href="/alerts" class="btn btn-sm btn-outline-primary w-100">
-                            View All (@alerts.Count()) Alerts
+                            @Localizer["Dashboard.ViewAllAlerts", alerts.Count()]
                         </a>
                     }
                 }
                 else
                 {
-                    <p class="text-muted">No active alerts</p>
+                    <p class="text-muted">@Localizer["Dashboard.NoActiveAlerts"]</p>
                 }
             </div>
 
             <div class="section-card mt-3">
-                <h2 class="section-title">Top Selling Products</h2>
+                <h2 class="section-title">@Localizer["Dashboard.TopSellingProducts"]</h2>
                 @if (topProducts.Any())
                 {
                     <div class="list-group">
@@ -125,7 +128,7 @@
                 }
                 else
                 {
-                    <p class="text-muted">No sales data available</p>
+                    <p class="text-muted">@Localizer["Dashboard.NoSalesData"]</p>
                 }
             </div>
         </div>
