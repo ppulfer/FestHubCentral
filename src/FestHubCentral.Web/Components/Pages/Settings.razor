@@ -1,0 +1,217 @@
+@page "/settings"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using Microsoft.AspNetCore.Components.Forms
+@inject IBrandingService BrandingService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Settings - Branding</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>⚙️ Settings</h1>
+            <p class="text-muted">Customize your festival's branding and appearance</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="section-card">
+                <h2 class="section-title">Festival Branding</h2>
+
+                @if (settings != null)
+                {
+                    <EditForm Model="settings" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Festival Name</label>
+                            <InputText @bind-Value="settings.FestivalName" class="form-control" placeholder="e.g., Wümmetfest Höngg" />
+                            <ValidationMessage For="@(() => settings.FestivalName)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tagline</label>
+                            <InputText @bind-Value="settings.Tagline" class="form-control" placeholder="e.g., Your festival motto" />
+                            <ValidationMessage For="@(() => settings.Tagline)" />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Primary Color</label>
+                                <div class="input-group">
+                                    <InputText @bind-Value="settings.PrimaryColor" type="color" class="form-control form-control-color" />
+                                    <InputText @bind-Value="settings.PrimaryColor" class="form-control" placeholder="#6366f1" />
+                                </div>
+                                <ValidationMessage For="@(() => settings.PrimaryColor)" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Secondary Color</label>
+                                <div class="input-group">
+                                    <InputText @bind-Value="settings.SecondaryColor" type="color" class="form-control form-control-color" />
+                                    <InputText @bind-Value="settings.SecondaryColor" class="form-control" placeholder="#8b5cf6" />
+                                </div>
+                                <ValidationMessage For="@(() => settings.SecondaryColor)" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Accent Color</label>
+                                <div class="input-group">
+                                    <InputText @bind-Value="settings.AccentColor" type="color" class="form-control form-control-color" />
+                                    <InputText @bind-Value="settings.AccentColor" class="form-control" placeholder="#ec4899" />
+                                </div>
+                                <ValidationMessage For="@(() => settings.AccentColor)" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Festival Logo</label>
+                            @if (!string.IsNullOrEmpty(settings.LogoPath))
+                            {
+                                <div class="mb-2">
+                                    <img src="@settings.LogoPath" alt="Current Logo" style="max-height: 100px; border: 1px solid #ddd; padding: 8px; border-radius: 4px;" />
+                                </div>
+                            }
+                            <InputFile OnChange="HandleFileSelected" class="form-control" accept="image/*" />
+                            <small class="form-text text-muted">Upload a logo image (PNG, JPG, SVG recommended)</small>
+                            @if (!string.IsNullOrEmpty(uploadMessage))
+                            {
+                                <div class="alert alert-info mt-2">@uploadMessage</div>
+                            }
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" @onclick="LoadSettings">Reset</button>
+                        </div>
+
+                        @if (saveMessage != null)
+                        {
+                            <div class="alert alert-success mt-3">@saveMessage</div>
+                        }
+                    </EditForm>
+                }
+                else
+                {
+                    <p>Loading settings...</p>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="section-card">
+                <h2 class="section-title">Preview</h2>
+                <div class="branding-preview" style="--primary-color: @settings?.PrimaryColor; --secondary-color: @settings?.SecondaryColor; --accent-color: @settings?.AccentColor;">
+                    @if (!string.IsNullOrEmpty(settings?.LogoPath))
+                    {
+                        <img src="@settings.LogoPath" alt="Logo" class="preview-logo mb-3" />
+                    }
+                    <h3 style="color: var(--primary-color);">@(settings?.FestivalName ?? "Festival Name")</h3>
+                    @if (!string.IsNullOrEmpty(settings?.Tagline))
+                    {
+                        <p class="text-muted">@settings.Tagline</p>
+                    }
+                    <div class="d-flex gap-2 mt-3">
+                        <div class="color-swatch" style="background-color: var(--primary-color);" title="Primary"></div>
+                        <div class="color-swatch" style="background-color: var(--secondary-color);" title="Secondary"></div>
+                        <div class="color-swatch" style="background-color: var(--accent-color);" title="Accent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .branding-preview {
+        padding: 20px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .preview-logo {
+        max-height: 80px;
+        max-width: 100%;
+    }
+
+    .color-swatch {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        flex: 1;
+    }
+</style>
+
+@code {
+    private BrandingSettings? settings;
+    private IBrowserFile? selectedFile;
+    private bool isSaving = false;
+    private string? saveMessage;
+    private string? uploadMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        settings = await BrandingService.GetBrandingSettingsAsync();
+        saveMessage = null;
+        uploadMessage = null;
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        uploadMessage = $"Selected: {selectedFile.Name}";
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (settings == null) return;
+
+        isSaving = true;
+        saveMessage = null;
+        uploadMessage = null;
+
+        try
+        {
+            if (selectedFile != null)
+            {
+                using var stream = selectedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+                settings.LogoPath = await BrandingService.SaveLogoAsync(stream, selectedFile.Name);
+                uploadMessage = "Logo uploaded successfully!";
+            }
+
+            settings.UpdatedBy = "Admin";
+            await BrandingService.UpdateBrandingSettingsAsync(settings);
+
+            saveMessage = "Settings saved successfully!";
+            selectedFile = null;
+
+            await Task.Delay(2000);
+            saveMessage = null;
+            uploadMessage = null;
+        }
+        catch (Exception ex)
+        {
+            saveMessage = $"Error saving settings: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

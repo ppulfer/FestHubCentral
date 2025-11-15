@@ -19,6 +19,7 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+builder.Services.AddScoped<IBrandingService, BrandingService>();
 
 builder.Services.AddSignalR();
 

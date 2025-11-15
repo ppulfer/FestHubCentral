@@ -1,22 +1,34 @@
 @page "/"
 @using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Components.Shared
+@using FestHubCentral.Web.Data.Models
 @using Microsoft.AspNetCore.SignalR.Client
 @inject IVendorService VendorService
 @inject IOrderService OrderService
 @inject IAlertService AlertService
 @inject IInventoryService InventoryService
+@inject IBrandingService BrandingService
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Dashboard - FestHub Central</PageTitle>
+<PageTitle>Dashboard - @(brandingSettings?.FestivalName ?? "FestHub Central")</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1>🎪 FestHub Central Dashboard</h1>
-            <p class="text-muted">Real-time festival gastronomy management</p>
+            <h1>
+                @if (!string.IsNullOrEmpty(brandingSettings?.LogoPath))
+                {
+                    <img src="@brandingSettings.LogoPath" alt="Logo" style="height: 48px; width: auto; margin-right: 12px;" />
+                }
+                else
+                {
+                    <span>🎪 </span>
+                }
+                @(brandingSettings?.FestivalName ?? "FestHub Central") Dashboard
+            </h1>
+            <p class="text-muted">@(brandingSettings?.Tagline ?? "Real-time festival gastronomy management")</p>
         </div>
     </div>
 
@@ -122,6 +134,7 @@
 
 @code {
     private HubConnection? hubConnection;
+    private BrandingSettings? brandingSettings;
     private List<Data.Models.Vendor> vendors = new();
     private List<Data.Models.Alert> alerts = new();
     private List<object> topProducts = new();
@@ -134,6 +147,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        brandingSettings = await BrandingService.GetBrandingSettingsAsync();
         await LoadData();
         await InitializeSignalR();
     }

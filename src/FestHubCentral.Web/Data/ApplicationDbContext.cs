@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Alert> Alerts => Set<Alert>();
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
+    public DbSet<BrandingSettings> BrandingSettings => Set<BrandingSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,6 +111,11 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<BrandingSettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+        });
+
         SeedData(modelBuilder);
     }
 
@@ -145,5 +151,18 @@ public class ApplicationDbContext : DbContext
         };
 
         modelBuilder.Entity<Inventory>().HasData(inventories);
+
+        var brandingSettings = new BrandingSettings
+        {
+            Id = 1,
+            FestivalName = "FestHub Central",
+            PrimaryColor = "#6366f1",
+            SecondaryColor = "#8b5cf6",
+            AccentColor = "#ec4899",
+            Tagline = "Real-time festival gastronomy management",
+            UpdatedAt = seedDate
+        };
+
+        modelBuilder.Entity<BrandingSettings>().HasData(brandingSettings);
     }
 }
