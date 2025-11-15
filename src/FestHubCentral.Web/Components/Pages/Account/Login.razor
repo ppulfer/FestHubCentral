@@ -27,7 +27,7 @@
                 {
                     <span class="login-icon">🎪</span>
                 }
-                <h2>@(brandingSettings.FestivalName ?? "FestHub Central")</h2>
+                <h2>@(brandingSettings.FestivalName ?? "FestHub Central") @(brandingSettings.UpcomingEventYear)</h2>
                 <p>Sign in to your account</p>
             </div>
         }
@@ -191,7 +191,7 @@
     private LoginModel? loginModel { get; set; }
 
     private string? errorMessage;
-    private BrandingSettings? brandingSettings;
+    private Data.Models.Settings? brandingSettings;
 
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
@@ -199,7 +199,7 @@
     protected override async Task OnInitializedAsync()
     {
         loginModel ??= new LoginModel();
-        brandingSettings = await BrandingService.GetBrandingSettingsAsync();
+        brandingSettings = await BrandingService.GetSettingsAsync();
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {

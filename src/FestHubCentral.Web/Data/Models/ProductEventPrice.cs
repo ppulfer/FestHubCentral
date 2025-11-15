@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FestHubCentral.Web.Data.Models;
 
-public class Inventory
+public class ProductEventPrice
 {
     public int Id { get; set; }
 
@@ -11,25 +11,13 @@ public class Inventory
     public Product Product { get; set; } = null!;
 
     [Required]
-    [Range(0, int.MaxValue)]
-    public int CurrentStock { get; set; }
-
-    [Required]
-    [Range(0, int.MaxValue)]
-    public int MinimumStock { get; set; }
-
-    [Required]
-    [Range(0, int.MaxValue)]
-    public int MaximumStock { get; set; }
-
-    [Range(0, int.MaxValue)]
-    public int ReorderQuantity { get; set; }
-
-    [Required]
     public int EventYear { get; set; }
     public Event Event { get; set; } = null!;
 
-    public DateTime LastRestocked { get; set; }
+    [Required]
+    [Range(0.01, 1000000)]
+    public decimal Price { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

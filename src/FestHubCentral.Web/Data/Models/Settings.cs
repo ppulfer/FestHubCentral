@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FestHubCentral.Web.Data.Models;
 
-public class BrandingSettings
+public class Settings
 {
     public int Id { get; set; }
 
@@ -24,6 +24,10 @@ public class BrandingSettings
 
     [MaxLength(200)]
     public string? Tagline { get; set; }
+
+    [Required]
+    public int UpcomingEventYear { get; set; } = DateTime.UtcNow.Year;
+    public Event UpcomingEvent { get; set; } = null!;
 
     public DateTime UpdatedAt { get; set; }
 

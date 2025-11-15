@@ -5,15 +5,15 @@
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center gap-2" href="">
-            @if (!string.IsNullOrEmpty(BrandingSettings?.LogoPath))
+            @if (!string.IsNullOrEmpty(Settings?.LogoPath))
             {
-                <img src="@BrandingSettings.LogoPath" alt="Logo" style="height: 32px; width: auto;" />
+                <img src="@Settings.LogoPath" alt="Logo" style="height: 32px; width: auto;" />
             }
             else
             {
                 <span>🎪</span>
             }
-            <span>@(BrandingSettings?.FestivalName ?? "FestHub Central")</span>
+            <span>@(Settings?.FestivalName ?? "FestHub Central") @(Settings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</span>
         </a>
     </div>
 </div>
@@ -76,5 +76,5 @@
 
 @code {
     [Parameter]
-    public BrandingSettings? BrandingSettings { get; set; }
+    public Settings? Settings { get; set; }
 }

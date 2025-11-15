@@ -50,7 +50,7 @@
                         {
                             <tr class="@(item.CurrentStock <= item.MinimumStock / 2 ? "table-danger" : "table-warning")">
                                 <td><strong>@item.Product.Name</strong></td>
-                                <td>@item.Product.Vendor.Name</td>
+                                <td>@item.Product.Supplier.Name</td>
                                 <td>
                                     <InventoryBar
                                         Label=""
@@ -132,9 +132,9 @@
                             <td>
                                 <strong>@item.Product.Name</strong>
                                 <br />
-                                <small class="text-muted">@item.Product.Price.ToString("C") / @item.Product.Unit</small>
+                                <small class="text-muted">@item.Product.Unit</small>
                             </td>
-                            <td>@item.Product.Vendor.Name</td>
+                            <td>@item.Product.Supplier.Name</td>
                             <td style="min-width: 200px;">
                                 <InventoryBar
                                     Label="@item.Product.Name"
@@ -203,7 +203,7 @@
         else
         {
             var vendorId = int.Parse(vendorIdStr);
-            filteredInventory = allInventory.Where(i => i.Product.VendorId == vendorId).ToList();
+            filteredInventory = allInventory.Where(i => i.Product.SupplierId == vendorId).ToList();
         }
     }
 

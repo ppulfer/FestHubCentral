@@ -13,7 +13,7 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>@Localizer["Dashboard.Title"].Value - @(brandingSettings?.FestivalName ?? "FestHub Central")</PageTitle>
+<PageTitle>@Localizer["Dashboard.Title"].Value - @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
@@ -27,7 +27,7 @@
                 {
                     <span>🎪 </span>
                 }
-                @(brandingSettings?.FestivalName ?? "FestHub Central") @Localizer["Dashboard.Title"].Value
+                @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.UpcomingEventYear ?? DateTime.UtcNow.Year) @Localizer["Dashboard.Title"].Value
             </h1>
             <p class="text-muted">@(brandingSettings?.Tagline ?? Localizer["Dashboard.Tagline"].Value)</p>
         </div>
@@ -43,9 +43,9 @@
 
         <StatCard
             Icon="🏪"
-            Value="@openVendors.ToString()"
-            Label="@Localizer["Dashboard.VendorsOpen"].Value"
-            SubText="@($"{totalVendors} {Localizer["Dashboard.TotalVendors"]}")" />
+            Value="@totalVendors.ToString()"
+            Label="@Localizer["Dashboard.TotalVendors"].Value"
+            SubText="" />
 
         <StatCard
             Icon="📦"
@@ -67,7 +67,7 @@
             <div class="section-card">
                 <h2 class="section-title">@Localizer["Dashboard.FestivalGroundsMap"].Value</h2>
                 <div class="vendor-grid">
-                    @for (int i = 1; i <= 15; i++)
+                    @for (int i = 1; i <= 30; i++)
                     {
                         var spot = i;
                         var vendor = vendors.FirstOrDefault(v => v.LocationSpot == spot);
@@ -76,7 +76,6 @@
                             @if (vendor != null)
                             {
                                 <div class="vendor-name">@vendor.Name</div>
-                                <StatusBadge Text="@(vendor.IsOpen ? Localizer["Dashboard.Open"].Value : Localizer["Dashboard.Closed"].Value)" Status="@(vendor.IsOpen ? "open" : "closed")" />
                             }
                             else
                             {
@@ -135,13 +134,12 @@
 
 @code {
     private HubConnection? hubConnection;
-    private BrandingSettings? brandingSettings;
+    private Data.Models.Settings? brandingSettings;
     private List<Data.Models.Vendor> vendors = new();
     private List<Data.Models.Alert> alerts = new();
     private List<object> topProducts = new();
     private decimal totalSales = 0;
     private int orderCount = 0;
-    private int openVendors = 0;
     private int totalVendors = 0;
     private int lowStockCount = 0;
     private int alertCount = 0;
@@ -149,7 +147,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        brandingSettings = await BrandingService.GetBrandingSettingsAsync();
+        brandingSettings = await BrandingService.GetSettingsAsync();
         await LoadData();
         await InitializeSignalR();
     }
@@ -170,7 +168,6 @@
             var allOrders = await OrderService.GetOrdersByDateRangeAsync(todayUtc, todayUtc.AddDays(1));
             orderCount = allOrders.Count();
 
-            openVendors = vendors.Count(v => v.IsOpen);
             totalVendors = vendors.Count;
 
             var lowStockItems = await InventoryService.GetLowStockItemsAsync();
@@ -215,7 +212,7 @@
     private string GetSpotClass(Data.Models.Vendor? vendor)
     {
         if (vendor == null) return "empty";
-        return vendor.IsOpen ? "occupied open" : "occupied closed";
+        return "occupied";
     }
 
     private void NavigateToVendor(int? vendorId)

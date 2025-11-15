@@ -2,20 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FestHubCentral.Web.Data.Models;
 
-public class Vendor
+public class Supplier
 {
     public int Id { get; set; }
 
     [Required]
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(50)]
-    public string Category { get; set; } = string.Empty;
-
-    [Range(1, 100)]
-    public int LocationSpot { get; set; }
 
     [MaxLength(100)]
     public string? ContactPerson { get; set; }
@@ -26,8 +19,11 @@ public class Vendor
     [MaxLength(100)]
     public string? ContactEmail { get; set; }
 
+    [MaxLength(200)]
+    public string? Address { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
-    public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<Product> Products { get; set; } = new List<Product>();
 }

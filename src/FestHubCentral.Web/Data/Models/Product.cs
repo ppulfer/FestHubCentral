@@ -14,21 +14,18 @@ public class Product
     public string? Description { get; set; }
 
     [Required]
-    [Range(0.01, 1000000)]
-    public decimal Price { get; set; }
-
-    [Required]
     [MaxLength(50)]
     public string Unit { get; set; } = string.Empty;
 
     public bool IsAvailable { get; set; } = true;
 
     [Required]
-    public int VendorId { get; set; }
-    public Vendor Vendor { get; set; } = null!;
+    public int SupplierId { get; set; }
+    public Supplier Supplier { get; set; } = null!;
 
     public Inventory? Inventory { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<ProductEventPrice> ProductEventPrices { get; set; } = new List<ProductEventPrice>();
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

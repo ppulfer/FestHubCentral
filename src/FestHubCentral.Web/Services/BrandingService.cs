@@ -10,7 +10,7 @@ public class BrandingService : IBrandingService
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _environment;
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
-    private static BrandingSettings? _cachedSettings;
+    private static Settings? _cachedSettings;
     private static DateTime _cacheExpiration = DateTime.MinValue;
 
     public BrandingService(ApplicationDbContext context, IWebHostEnvironment environment)
@@ -19,7 +19,7 @@ public class BrandingService : IBrandingService
         _environment = environment;
     }
 
-    public async Task<BrandingSettings> GetBrandingSettingsAsync()
+    public async Task<Settings> GetSettingsAsync()
     {
         if (_cachedSettings != null && DateTime.UtcNow < _cacheExpiration)
         {
@@ -34,11 +34,11 @@ public class BrandingService : IBrandingService
                 return _cachedSettings;
             }
 
-            var settings = await _context.BrandingSettings.AsNoTracking().FirstOrDefaultAsync();
+            var settings = await _context.Settings.AsNoTracking().FirstOrDefaultAsync();
 
             if (settings == null)
             {
-                settings = new BrandingSettings
+                settings = new Settings
                 {
                     FestivalName = "FestHub Central",
                     PrimaryColor = "#6366f1",
@@ -48,7 +48,7 @@ public class BrandingService : IBrandingService
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                _context.BrandingSettings.Add(settings);
+                _context.Settings.Add(settings);
                 await _context.SaveChangesAsync();
             }
 
@@ -63,16 +63,16 @@ public class BrandingService : IBrandingService
         }
     }
 
-    public async Task<BrandingSettings> UpdateBrandingSettingsAsync(BrandingSettings settings)
+    public async Task<Settings> UpdateSettingsAsync(Settings settings)
     {
         await _semaphore.WaitAsync();
         try
         {
-            var existing = await _context.BrandingSettings.FirstOrDefaultAsync();
+            var existing = await _context.Settings.FirstOrDefaultAsync();
 
             if (existing == null)
             {
-                _context.BrandingSettings.Add(settings);
+                _context.Settings.Add(settings);
             }
             else
             {
@@ -82,6 +82,7 @@ public class BrandingService : IBrandingService
                 existing.SecondaryColor = settings.SecondaryColor;
                 existing.AccentColor = settings.AccentColor;
                 existing.Tagline = settings.Tagline;
+                existing.UpcomingEventYear = settings.UpcomingEventYear;
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedBy = settings.UpdatedBy;
             }

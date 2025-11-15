@@ -17,7 +17,6 @@ public class VendorService : IVendorService
     public async Task<IEnumerable<Vendor>> GetAllVendorsAsync()
     {
         return await _context.Vendors
-            .Include(v => v.Products)
             .OrderBy(v => v.LocationSpot)
             .ToListAsync();
     }
@@ -25,7 +24,6 @@ public class VendorService : IVendorService
     public async Task<Vendor?> GetVendorByIdAsync(int id)
     {
         return await _context.Vendors
-            .Include(v => v.Products)
             .FirstOrDefaultAsync(v => v.Id == id);
     }
 
@@ -55,22 +53,4 @@ public class VendorService : IVendorService
         }
     }
 
-    public async Task<bool> ToggleVendorStatusAsync(int id)
-    {
-        var vendor = await _context.Vendors.FindAsync(id);
-        if (vendor != null)
-        {
-            vendor.IsOpen = !vendor.IsOpen;
-            vendor.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-            return vendor.IsOpen;
-        }
-        return false;
-    }
-
-    public async Task<Dictionary<int, bool>> GetVendorStatusMapAsync()
-    {
-        return await _context.Vendors
-            .ToDictionaryAsync(v => v.LocationSpot, v => v.IsOpen);
-    }
 }

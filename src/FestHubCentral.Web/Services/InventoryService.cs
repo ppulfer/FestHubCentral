@@ -9,39 +9,48 @@ public class InventoryService : IInventoryService
 {
     private readonly ApplicationDbContext _context;
     private readonly IAlertService _alertService;
+    private readonly IBrandingService _brandingService;
 
-    public InventoryService(ApplicationDbContext context, IAlertService alertService)
+    public InventoryService(ApplicationDbContext context, IAlertService alertService, IBrandingService brandingService)
     {
         _context = context;
         _alertService = alertService;
+        _brandingService = brandingService;
     }
 
     public async Task<IEnumerable<Inventory>> GetAllInventoryAsync()
     {
+        var settings = await _brandingService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
-                .ThenInclude(p => p.Vendor)
+                .ThenInclude(p => p.Supplier)
+            .Where(i => i.EventYear == settings.UpcomingEventYear)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<Inventory>> GetLowStockItemsAsync()
     {
+        var settings = await _brandingService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
-                .ThenInclude(p => p.Vendor)
-            .Where(i => i.CurrentStock <= i.MinimumStock)
+                .ThenInclude(p => p.Supplier)
+            .Where(i => i.CurrentStock <= i.MinimumStock && i.EventYear == settings.UpcomingEventYear)
             .ToListAsync();
     }
 
     public async Task<Inventory?> GetInventoryByProductIdAsync(int productId)
     {
+        var settings = await _brandingService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
+            .Where(i => i.EventYear == settings.UpcomingEventYear)
             .FirstOrDefaultAsync(i => i.ProductId == productId);
     }
 
     public async Task<Inventory> CreateInventoryAsync(Inventory inventory)
     {
+        var settings = await _brandingService.GetSettingsAsync();
+        inventory.EventYear = settings.UpcomingEventYear;
         inventory.CreatedAt = DateTime.UtcNow;
         inventory.LastRestocked = DateTime.UtcNow;
         _context.Inventories.Add(inventory);
@@ -87,7 +96,7 @@ public class InventoryService : IInventoryService
             if (inventory.CurrentStock <= inventory.MinimumStock)
             {
                 var product = await _context.Products
-                    .Include(p => p.Vendor)
+                    .Include(p => p.Supplier)
                     .FirstOrDefaultAsync(p => p.Id == productId);
 
                 if (product != null)
@@ -101,8 +110,7 @@ public class InventoryService : IInventoryService
                         Type = "LowInventory",
                         Severity = severity,
                         Title = "Low Stock Alert",
-                        Message = $"{product.Name} at {product.Vendor.Name} is running low. Current stock: {inventory.CurrentStock}, Minimum: {inventory.MinimumStock}",
-                        VendorId = product.VendorId,
+                        Message = $"{product.Name} from {product.Supplier.Name} is running low. Current stock: {inventory.CurrentStock}, Minimum: {inventory.MinimumStock}",
                         ProductId = productId
                     });
                 }

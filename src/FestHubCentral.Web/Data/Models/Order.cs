@@ -27,5 +27,9 @@ public class Order
 
     public DateTime OrderDate { get; set; }
 
+    [Required]
+    public int EventYear { get; set; }
+    public Event Event { get; set; } = null!;
+
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

@@ -9,6 +9,4 @@ public interface IVendorService
     Task<Vendor> CreateVendorAsync(Vendor vendor);
     Task<Vendor> UpdateVendorAsync(Vendor vendor);
     Task DeleteVendorAsync(int id);
-    Task<bool> ToggleVendorStatusAsync(int id);
-    Task<Dictionary<int, bool>> GetVendorStatusMapAsync();
 }

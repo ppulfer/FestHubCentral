@@ -75,11 +75,6 @@
                     </div>
                 </div>
 
-                <div class="mb-3 form-check">
-                    <InputCheckbox class="form-check-input" @bind-Value="editingVendor!.IsOpen" />
-                    <label class="form-check-label">Vendor is Open</label>
-                </div>
-
                 <div>
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
@@ -98,7 +93,6 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Contact</th>
-                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -121,13 +115,7 @@
                                 }
                             </td>
                             <td>
-                                <StatusBadge Text="@(vendor.IsOpen ? "Open" : "Closed")" Status="@(vendor.IsOpen ? "open" : "closed")" />
-                            </td>
-                            <td>
                                 <div class="table-actions">
-                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => ToggleVendorStatus(vendor.Id)">
-                                        @(vendor.IsOpen ? "Close" : "Open")
-                                    </button>
                                     <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditVendor(vendor)">
                                         Edit
                                     </button>
@@ -164,7 +152,7 @@
 
     private void ShowAddVendorForm()
     {
-        editingVendor = new Vendor { Category = "Food", IsOpen = true };
+        editingVendor = new Vendor { Category = "Food" };
         showForm = true;
     }
 
@@ -178,8 +166,7 @@
                 LocationSpot = vendor.LocationSpot,
                 ContactPerson = vendor.ContactPerson,
                 ContactPhone = vendor.ContactPhone,
-                ContactEmail = vendor.ContactEmail,
-                IsOpen = vendor.IsOpen
+                ContactEmail = vendor.ContactEmail
             };
         showForm = true;
     }
@@ -205,12 +192,6 @@
 
         await LoadVendors();
         CancelEdit();
-    }
-
-    private async Task ToggleVendorStatus(int vendorId)
-    {
-        await VendorService.ToggleVendorStatusAsync(vendorId);
-        await LoadVendors();
     }
 
     private void ViewVendor(int vendorId)

@@ -32,6 +32,13 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">@Localizer["Settings.FestivalYear"].Value</label>
+                            <InputNumber @bind-Value="settings.UpcomingEventYear" class="form-control" placeholder="2025" />
+                            <small class="form-text text-muted">@Localizer["Settings.FestivalYearHelp"].Value</small>
+                            <ValidationMessage For="@(() => settings.UpcomingEventYear)" />
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">@Localizer["Settings.Tagline"].Value</label>
                             <InputText @bind-Value="settings.Tagline" class="form-control" placeholder="@Localizer["Settings.TaglinePlaceholder"].Value" />
                             <ValidationMessage For="@(() => settings.Tagline)" />
@@ -114,7 +121,7 @@
                     {
                         <img src="@settings.LogoPath" alt="Logo" class="preview-logo mb-3" />
                     }
-                    <h3 style="color: var(--primary-color);">@(settings?.FestivalName ?? "Festival Name")</h3>
+                    <h3 style="color: var(--primary-color);">@(settings?.FestivalName ?? "Festival Name") @(settings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</h3>
                     @if (!string.IsNullOrEmpty(settings?.Tagline))
                     {
                         <p class="text-muted">@settings.Tagline</p>
@@ -153,7 +160,7 @@
 </style>
 
 @code {
-    private BrandingSettings? settings;
+    private Data.Models.Settings? settings;
     private IBrowserFile? selectedFile;
     private bool isSaving = false;
     private string? saveMessage;
@@ -166,7 +173,7 @@
 
     private async Task LoadSettings()
     {
-        settings = await BrandingService.GetBrandingSettingsAsync();
+        settings = await BrandingService.GetSettingsAsync();
         saveMessage = null;
         uploadMessage = null;
     }
@@ -195,7 +202,7 @@
             }
 
             settings.UpdatedBy = "Admin";
-            await BrandingService.UpdateBrandingSettingsAsync(settings);
+            await BrandingService.UpdateSettingsAsync(settings);
 
             saveMessage = Localizer["Settings.SettingsSaved"];
             selectedFile = null;
