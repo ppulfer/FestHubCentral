@@ -6,9 +6,11 @@ using FestHubCentral.Web.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 var supportedCultures = new[] { "en", "de" };
@@ -16,6 +18,8 @@ var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture("en")
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures);
+
+localizationOptions.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -54,5 +58,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapHub<FestivalHub>("/festivalhub");
+app.MapControllers();
 
 app.Run();
