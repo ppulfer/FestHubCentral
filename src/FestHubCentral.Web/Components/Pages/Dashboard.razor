@@ -13,7 +13,7 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>@Localizer["Dashboard.Title"] - @(brandingSettings?.FestivalName ?? "FestHub Central")</PageTitle>
+<PageTitle>@Localizer["Dashboard.Title"].Value - @(brandingSettings?.FestivalName ?? "FestHub Central")</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
@@ -27,7 +27,7 @@
                 {
                     <span>🎪 </span>
                 }
-                @(brandingSettings?.FestivalName ?? "FestHub Central") @Localizer["Dashboard.Title"]
+                @(brandingSettings?.FestivalName ?? "FestHub Central") @Localizer["Dashboard.Title"].Value
             </h1>
             <p class="text-muted">@(brandingSettings?.Tagline ?? Localizer["Dashboard.Tagline"].Value)</p>
         </div>
@@ -37,42 +37,42 @@
         <StatCard
             Icon="💰"
             Value="@totalSales.ToString("C")"
-            Label="@Localizer["Dashboard.TodaysSales"]"
+            Label="@Localizer["Dashboard.TodaysSales"].Value"
             SubText="@($"{orderCount} {Localizer["Dashboard.Orders"]}")"
             CssClass="stat-card-success" />
 
         <StatCard
             Icon="🏪"
             Value="@openVendors.ToString()"
-            Label="@Localizer["Dashboard.VendorsOpen"]"
+            Label="@Localizer["Dashboard.VendorsOpen"].Value"
             SubText="@($"{totalVendors} {Localizer["Dashboard.TotalVendors"]}")" />
 
         <StatCard
             Icon="📦"
             Value="@lowStockCount.ToString()"
-            Label="@Localizer["Dashboard.LowStockItems"]"
-            SubText="@Localizer["Dashboard.RequiresAttention"]"
+            Label="@Localizer["Dashboard.LowStockItems"].Value"
+            SubText="@Localizer["Dashboard.RequiresAttention"].Value"
             CssClass="@(lowStockCount > 0 ? "stat-card-warning" : "")" />
 
         <StatCard
             Icon="🚨"
             Value="@alertCount.ToString()"
-            Label="@Localizer["Dashboard.ActiveAlerts"]"
-            SubText="@Localizer["Dashboard.UnresolvedIssues"]"
+            Label="@Localizer["Dashboard.ActiveAlerts"].Value"
+            SubText="@Localizer["Dashboard.UnresolvedIssues"].Value"
             CssClass="@(alertCount > 0 ? "stat-card-danger" : "")" />
     </div>
 
     <div class="row">
         <div class="col-md-8">
             <div class="section-card">
-                <h2 class="section-title">@Localizer["Dashboard.FestivalGroundsMap"]</h2>
+                <h2 class="section-title">@Localizer["Dashboard.FestivalGroundsMap"].Value</h2>
                 <div class="vendor-grid">
                     @for (int i = 1; i <= 15; i++)
                     {
                         var spot = i;
                         var vendor = vendors.FirstOrDefault(v => v.LocationSpot == spot);
                         <div class="vendor-spot @GetSpotClass(vendor)" @onclick="() => NavigateToVendor(vendor?.Id)">
-                            <div class="vendor-spot-number">@Localizer["Dashboard.Spot"] @spot</div>
+                            <div class="vendor-spot-number">@Localizer["Dashboard.Spot"].Value @spot</div>
                             @if (vendor != null)
                             {
                                 <div class="vendor-name">@vendor.Name</div>
@@ -80,7 +80,7 @@
                             }
                             else
                             {
-                                <div class="text-muted">@Localizer["Dashboard.Available"]</div>
+                                <div class="text-muted">@Localizer["Dashboard.Available"].Value</div>
                             }
                         </div>
                     }
@@ -90,7 +90,7 @@
 
         <div class="col-md-4">
             <div class="section-card">
-                <h2 class="section-title">@Localizer["Dashboard.ActiveAlerts"]</h2>
+                <h2 class="section-title">@Localizer["Dashboard.ActiveAlerts"].Value</h2>
                 @if (alerts.Any())
                 {
                     @foreach (var alert in alerts.Take(5))
@@ -106,12 +106,12 @@
                 }
                 else
                 {
-                    <p class="text-muted">@Localizer["Dashboard.NoActiveAlerts"]</p>
+                    <p class="text-muted">@Localizer["Dashboard.NoActiveAlerts"].Value</p>
                 }
             </div>
 
             <div class="section-card mt-3">
-                <h2 class="section-title">@Localizer["Dashboard.TopSellingProducts"]</h2>
+                <h2 class="section-title">@Localizer["Dashboard.TopSellingProducts"].Value</h2>
                 @if (topProducts.Any())
                 {
                     <div class="list-group">
@@ -126,7 +126,7 @@
                 }
                 else
                 {
-                    <p class="text-muted">@Localizer["Dashboard.NoSalesData"]</p>
+                    <p class="text-muted">@Localizer["Dashboard.NoSalesData"].Value</p>
                 }
             </div>
         </div>
