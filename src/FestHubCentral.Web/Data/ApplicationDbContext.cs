@@ -138,10 +138,10 @@ public class ApplicationDbContext : DbContext
 
         var inventories = new[]
         {
-            new Inventory { Id = 1, ProductId = 1, CurrentStock = 50, MinimumStock = 10, MaximumStock = 100, ReorderQuantity = 50, CreatedAt = seedDate },
-            new Inventory { Id = 2, ProductId = 2, CurrentStock = 75, MinimumStock = 20, MaximumStock = 150, ReorderQuantity = 75, CreatedAt = seedDate },
-            new Inventory { Id = 3, ProductId = 3, CurrentStock = 8, MinimumStock = 15, MaximumStock = 200, ReorderQuantity = 100, CreatedAt = seedDate },
-            new Inventory { Id = 4, ProductId = 4, CurrentStock = 30, MinimumStock = 5, MaximumStock = 50, ReorderQuantity = 25, CreatedAt = seedDate }
+            new Inventory { Id = 1, ProductId = 1, CurrentStock = 50, MinimumStock = 10, MaximumStock = 100, ReorderQuantity = 50, LastRestocked = seedDate, CreatedAt = seedDate },
+            new Inventory { Id = 2, ProductId = 2, CurrentStock = 75, MinimumStock = 20, MaximumStock = 150, ReorderQuantity = 75, LastRestocked = seedDate, CreatedAt = seedDate },
+            new Inventory { Id = 3, ProductId = 3, CurrentStock = 8, MinimumStock = 15, MaximumStock = 200, ReorderQuantity = 100, LastRestocked = seedDate, CreatedAt = seedDate },
+            new Inventory { Id = 4, ProductId = 4, CurrentStock = 30, MinimumStock = 5, MaximumStock = 50, ReorderQuantity = 25, LastRestocked = seedDate, CreatedAt = seedDate }
         };
 
         modelBuilder.Entity<Inventory>().HasData(inventories);

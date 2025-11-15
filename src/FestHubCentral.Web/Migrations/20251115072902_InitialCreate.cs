@@ -232,10 +232,10 @@ namespace FestHubCentral.Web.Migrations
                 columns: new[] { "Id", "CreatedAt", "CurrentStock", "LastRestocked", "MaximumStock", "MinimumStock", "ProductId", "ReorderQuantity", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 50, new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(430), 100, 10, 1, 50, null },
-                    { 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 75, new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(1090), 150, 20, 2, 75, null },
-                    { 3, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(1090), 200, 15, 3, 100, null },
-                    { 4, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 30, new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(1090), 50, 5, 4, 25, null }
+                    { 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 50, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 100, 10, 1, 50, null },
+                    { 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 75, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 150, 20, 2, 75, null },
+                    { 3, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 8, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 200, 15, 3, 100, null },
+                    { 4, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 30, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 50, 5, 4, 25, null }
                 });
 
             migrationBuilder.CreateIndex(

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FestHubCentral.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251115072435_InitialCreate")]
+    [Migration("20251115072902_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -200,7 +200,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CurrentStock = 50,
-                            LastRestocked = new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(430),
+                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             MaximumStock = 100,
                             MinimumStock = 10,
                             ProductId = 1,
@@ -211,7 +211,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 2,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CurrentStock = 75,
-                            LastRestocked = new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(1090),
+                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             MaximumStock = 150,
                             MinimumStock = 20,
                             ProductId = 2,
@@ -222,7 +222,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 3,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CurrentStock = 8,
-                            LastRestocked = new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(1090),
+                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             MaximumStock = 200,
                             MinimumStock = 15,
                             ProductId = 3,
@@ -233,7 +233,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 4,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CurrentStock = 30,
-                            LastRestocked = new DateTime(2025, 11, 15, 7, 24, 35, 292, DateTimeKind.Utc).AddTicks(1090),
+                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             MaximumStock = 50,
                             MinimumStock = 5,
                             ProductId = 4,
