@@ -142,10 +142,13 @@
     {
         vendors = (await VendorService.GetAllVendorsAsync()).ToList();
         alerts = (await AlertService.GetUnresolvedAlertsAsync()).ToList();
-        topProducts = (await OrderService.GetTopSellingProductsAsync(10, DateTime.Today)).ToList();
 
-        totalSales = await OrderService.GetTotalSalesByDateAsync(DateTime.Today);
-        var allOrders = await OrderService.GetOrdersByDateRangeAsync(DateTime.Today, DateTime.Today.AddDays(1));
+        var today = DateTime.UtcNow.Date;
+        var todayUtc = DateTime.SpecifyKind(today, DateTimeKind.Utc);
+
+        topProducts = (await OrderService.GetTopSellingProductsAsync(10, todayUtc)).ToList();
+        totalSales = await OrderService.GetTotalSalesByDateAsync(todayUtc);
+        var allOrders = await OrderService.GetOrdersByDateRangeAsync(todayUtc, todayUtc.AddDays(1));
         orderCount = allOrders.Count();
 
         openVendors = vendors.Count(v => v.IsOpen);

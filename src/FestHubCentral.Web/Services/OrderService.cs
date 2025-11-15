@@ -84,22 +84,28 @@ public class OrderService : IOrderService
 
     public async Task<decimal> GetTotalSalesByDateAsync(DateTime date)
     {
+        var startDate = date.Date;
+        var endDate = startDate.AddDays(1);
         return await _context.Orders
-            .Where(o => o.OrderDate.Date == date.Date)
+            .Where(o => o.OrderDate >= startDate && o.OrderDate < endDate)
             .SumAsync(o => o.TotalAmount);
     }
 
     public async Task<decimal> GetTotalSalesByVendorAsync(int vendorId, DateTime date)
     {
+        var startDate = date.Date;
+        var endDate = startDate.AddDays(1);
         return await _context.Orders
-            .Where(o => o.VendorId == vendorId && o.OrderDate.Date == date.Date)
+            .Where(o => o.VendorId == vendorId && o.OrderDate >= startDate && o.OrderDate < endDate)
             .SumAsync(o => o.TotalAmount);
     }
 
     public async Task<Dictionary<string, decimal>> GetSalesByPaymentMethodAsync(DateTime date)
     {
+        var startDate = date.Date;
+        var endDate = startDate.AddDays(1);
         return await _context.Orders
-            .Where(o => o.OrderDate.Date == date.Date)
+            .Where(o => o.OrderDate >= startDate && o.OrderDate < endDate)
             .GroupBy(o => o.PaymentMethod)
             .Select(g => new { PaymentMethod = g.Key, Total = g.Sum(o => o.TotalAmount) })
             .ToDictionaryAsync(x => x.PaymentMethod, x => x.Total);
