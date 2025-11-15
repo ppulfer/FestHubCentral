@@ -1,25 +1,42 @@
 @page "/settings"
 @using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Resources
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Localization
+@using System.Globalization
 @inject IBrandingService BrandingService
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResources> Localizer
 @rendermode InteractiveServer
 
-<PageTitle>Settings - Branding</PageTitle>
+<PageTitle>@Localizer["Settings.Title"]</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1>⚙️ Settings</h1>
-            <p class="text-muted">Customize your festival's branding and appearance</p>
+            <h1>⚙️ @Localizer["Settings.Title"]</h1>
+            <p class="text-muted">@Localizer["Settings.Description"]</p>
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
+            <div class="section-card mb-4">
+                <h2 class="section-title">@Localizer["Settings.Language"]</h2>
+                <p class="text-muted mb-3">@Localizer["Settings.LanguageDescription"]</p>
+
+                <div class="mb-3">
+                    <label class="form-label">@Localizer["Settings.Language"]</label>
+                    <select class="form-select" @onchange="OnLanguageChanged" value="@currentCulture">
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="en">🇬🇧 English</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="section-card">
-                <h2 class="section-title">Festival Branding</h2>
+                <h2 class="section-title">@Localizer["Settings.FestivalBranding"]</h2>
 
                 @if (settings != null)
                 {
@@ -27,20 +44,20 @@
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
-                            <label class="form-label">Festival Name</label>
-                            <InputText @bind-Value="settings.FestivalName" class="form-control" placeholder="e.g., Wümmetfest Höngg" />
+                            <label class="form-label">@Localizer["Settings.FestivalName"]</label>
+                            <InputText @bind-Value="settings.FestivalName" class="form-control" placeholder="@Localizer["Settings.FestivalNamePlaceholder"]" />
                             <ValidationMessage For="@(() => settings.FestivalName)" />
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tagline</label>
-                            <InputText @bind-Value="settings.Tagline" class="form-control" placeholder="e.g., Your festival motto" />
+                            <label class="form-label">@Localizer["Settings.Tagline"]</label>
+                            <InputText @bind-Value="settings.Tagline" class="form-control" placeholder="@Localizer["Settings.TaglinePlaceholder"]" />
                             <ValidationMessage For="@(() => settings.Tagline)" />
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <label class="form-label">Primary Color</label>
+                                <label class="form-label">@Localizer["Settings.PrimaryColor"]</label>
                                 <div class="input-group">
                                     <InputText @bind-Value="settings.PrimaryColor" type="color" class="form-control form-control-color" />
                                     <InputText @bind-Value="settings.PrimaryColor" class="form-control" placeholder="#6366f1" />
@@ -49,7 +66,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Secondary Color</label>
+                                <label class="form-label">@Localizer["Settings.SecondaryColor"]</label>
                                 <div class="input-group">
                                     <InputText @bind-Value="settings.SecondaryColor" type="color" class="form-control form-control-color" />
                                     <InputText @bind-Value="settings.SecondaryColor" class="form-control" placeholder="#8b5cf6" />
@@ -58,7 +75,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Accent Color</label>
+                                <label class="form-label">@Localizer["Settings.AccentColor"]</label>
                                 <div class="input-group">
                                     <InputText @bind-Value="settings.AccentColor" type="color" class="form-control form-control-color" />
                                     <InputText @bind-Value="settings.AccentColor" class="form-control" placeholder="#ec4899" />
@@ -68,7 +85,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Festival Logo</label>
+                            <label class="form-label">@Localizer["Settings.FestivalLogo"]</label>
                             @if (!string.IsNullOrEmpty(settings.LogoPath))
                             {
                                 <div class="mb-2">
@@ -76,7 +93,7 @@
                                 </div>
                             }
                             <InputFile OnChange="HandleFileSelected" class="form-control" accept="image/*" />
-                            <small class="form-text text-muted">Upload a logo image (PNG, JPG, SVG recommended)</small>
+                            <small class="form-text text-muted">@Localizer["Settings.UploadLogo"]</small>
                             @if (!string.IsNullOrEmpty(uploadMessage))
                             {
                                 <div class="alert alert-info mt-2">@uploadMessage</div>
@@ -89,9 +106,9 @@
                                 {
                                     <span class="spinner-border spinner-border-sm me-2"></span>
                                 }
-                                Save Changes
+                                @Localizer["Settings.SaveChanges"]
                             </button>
-                            <button type="button" class="btn btn-outline-secondary" @onclick="LoadSettings">Reset</button>
+                            <button type="button" class="btn btn-outline-secondary" @onclick="LoadSettings">@Localizer["Settings.Reset"]</button>
                         </div>
 
                         @if (saveMessage != null)
@@ -102,14 +119,14 @@
                 }
                 else
                 {
-                    <p>Loading settings...</p>
+                    <p>@Localizer["Settings.LoadingSettings"]</p>
                 }
             </div>
         </div>
 
         <div class="col-lg-4">
             <div class="section-card">
-                <h2 class="section-title">Preview</h2>
+                <h2 class="section-title">@Localizer["Settings.Preview"]</h2>
                 <div class="branding-preview" style="--primary-color: @settings?.PrimaryColor; --secondary-color: @settings?.SecondaryColor; --accent-color: @settings?.AccentColor;">
                     @if (!string.IsNullOrEmpty(settings?.LogoPath))
                     {
@@ -159,9 +176,11 @@
     private bool isSaving = false;
     private string? saveMessage;
     private string? uploadMessage;
+    private string currentCulture = "de";
 
     protected override async Task OnInitializedAsync()
     {
+        currentCulture = CultureInfo.CurrentCulture.Name;
         await LoadSettings();
     }
 
@@ -172,10 +191,22 @@
         uploadMessage = null;
     }
 
+    private void OnLanguageChanged(ChangeEventArgs e)
+    {
+        var culture = e.Value?.ToString();
+        if (string.IsNullOrEmpty(culture) || culture == currentCulture) return;
+
+        var uri = new Uri(Navigation.Uri).GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+        var cultureEscaped = Uri.EscapeDataString(culture);
+        var uriEscaped = Uri.EscapeDataString(uri);
+
+        Navigation.NavigateTo($"/Culture/Set?culture={cultureEscaped}&redirectUri={uriEscaped}", forceLoad: true);
+    }
+
     private void HandleFileSelected(InputFileChangeEventArgs e)
     {
         selectedFile = e.File;
-        uploadMessage = $"Selected: {selectedFile.Name}";
+        uploadMessage = Localizer["Settings.Selected", selectedFile.Name];
     }
 
     private async Task HandleSubmit()
@@ -192,13 +223,13 @@
             {
                 using var stream = selectedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
                 settings.LogoPath = await BrandingService.SaveLogoAsync(stream, selectedFile.Name);
-                uploadMessage = "Logo uploaded successfully!";
+                uploadMessage = Localizer["Settings.LogoUploaded"];
             }
 
             settings.UpdatedBy = "Admin";
             await BrandingService.UpdateBrandingSettingsAsync(settings);
 
-            saveMessage = "Settings saved successfully!";
+            saveMessage = Localizer["Settings.SettingsSaved"];
             selectedFile = null;
 
             await Task.Delay(2000);
@@ -207,7 +238,7 @@
         }
         catch (Exception ex)
         {
-            saveMessage = $"Error saving settings: {ex.Message}";
+            saveMessage = Localizer["Settings.ErrorSaving", ex.Message];
         }
         finally
         {
