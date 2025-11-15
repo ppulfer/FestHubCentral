@@ -4,22 +4,16 @@ using FestHubCentral.Web.Hubs;
 using FestHubCentral.Web.Services;
 using FestHubCentral.Web.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using Microsoft.Extensions.Localization;
 using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-CH");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-CH");
+
 builder.Services.AddControllers();
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-
-var supportedCultures = new[] { "de", "en" };
-var localizationOptions = new RequestLocalizationOptions()
-    .SetDefaultCulture("de")
-    .AddSupportedCultures(supportedCultures)
-    .AddSupportedUICultures(supportedCultures);
-
-localizationOptions.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+builder.Services.AddLocalization();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -48,8 +42,6 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-
-app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
 
