@@ -1,0 +1,22 @@
+@* Component for displaying status badges with color coding *@
+
+<span class="status-badge @StatusClass">
+    @Text
+</span>
+
+@code {
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string Status { get; set; } = "default";
+
+    private string StatusClass => Status.ToLower() switch
+    {
+        "open" => "status-success",
+        "closed" => "status-danger",
+        "success" => "status-success",
+        "warning" => "status-warning",
+        "danger" => "status-danger",
+        "critical" => "status-critical",
+        "info" => "status-info",
+        _ => "status-default"
+    };
+}

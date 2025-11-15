@@ -1,0 +1,30 @@
+@* Component for displaying inventory levels as a progress bar *@
+
+<div class="inventory-bar-container">
+    <div class="inventory-info">
+        <span class="inventory-label">@Label</span>
+        <span class="inventory-value">@CurrentStock / @MaxStock</span>
+    </div>
+    <div class="inventory-bar">
+        <div class="inventory-fill @FillClass" style="width: @Percentage%"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public int CurrentStock { get; set; }
+    [Parameter] public int MinStock { get; set; }
+    [Parameter] public int MaxStock { get; set; }
+
+    private double Percentage => MaxStock > 0 ? ((double)CurrentStock / MaxStock * 100) : 0;
+
+    private string FillClass
+    {
+        get
+        {
+            if (CurrentStock <= MinStock / 2) return "fill-critical";
+            if (CurrentStock <= MinStock) return "fill-warning";
+            return "fill-good";
+        }
+    }
+}

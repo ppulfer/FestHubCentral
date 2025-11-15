@@ -1,0 +1,308 @@
+@page "/cash-registers"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Components.Shared
+@inject ICashRegisterService CashRegisterService
+@inject IVendorService VendorService
+@rendermode InteractiveServer
+
+<PageTitle>Cash Registers - FestHub Central</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>💰 Cash Register Management</h1>
+            <p class="text-muted">Daily cash register operations and reconciliation</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="ShowOpenRegisterForm">
+                Open Register
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <StatCard Icon="✅" Value="@openRegisters.Count().ToString()" Label="Open Registers" CssClass="stat-card-success" />
+        </div>
+        <div class="col-md-4">
+            <StatCard Icon="💵" Value="@totalCash.ToString("C")" Label="Total Cash" />
+        </div>
+        <div class="col-md-4">
+            <StatCard Icon="⚠️" Value="@discrepancyCount.ToString()" Label="Discrepancies Today" CssClass="@(discrepancyCount > 0 ? "stat-card-warning" : "")" />
+        </div>
+    </div>
+
+    @if (showOpenForm)
+    {
+        <div class="section-card mb-4">
+            <h3>Open Cash Register</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Vendor</label>
+                        <select class="form-select" @bind="newRegister.VendorId">
+                            <option value="0">Select Vendor</option>
+                            @foreach (var vendor in availableVendors)
+                            {
+                                <option value="@vendor.Id">@vendor.Name (Spot @vendor.LocationSpot)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Register Name</label>
+                        <input type="text" class="form-control" @bind="newRegister.RegisterName" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Opening Amount</label>
+                        <input type="number" class="form-control" @bind="newRegister.OpeningAmount" step="0.01" />
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Opened By</label>
+                <input type="text" class="form-control" @bind="newRegister.OpenedBy" />
+            </div>
+            <div>
+                <button class="btn btn-primary" @onclick="OpenRegister">Open Register</button>
+                <button class="btn btn-secondary" @onclick="CancelOpenForm">Cancel</button>
+            </div>
+        </div>
+    }
+
+    @if (showCloseForm && closingRegister != null)
+    {
+        <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Close Cash Register: @closingRegister.RegisterName</h5>
+                        <button type="button" class="btn-close" @onclick="CancelCloseForm"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="alert alert-info">
+                                    <strong>Opening Amount:</strong> @closingRegister.OpeningAmount.ToString("C")<br />
+                                    <strong>Opened:</strong> @closingRegister.OpenedAt.ToString("g")<br />
+                                    <strong>Opened By:</strong> @closingRegister.OpenedBy
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-secondary">
+                                    <strong>Expected Cash:</strong> @expectedAmount.ToString("C")<br />
+                                    <strong>Cash Sales:</strong> @closingRegister.CashSales.ToString("C")<br />
+                                    <strong>Card Sales:</strong> @closingRegister.CardSales.ToString("C")<br />
+                                    <strong>Token Sales:</strong> @closingRegister.TokenSales.ToString("C")
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Actual Closing Amount</strong></label>
+                                    <input type="number" class="form-control form-control-lg" @bind="closingAmount" step="0.01" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Closed By</strong></label>
+                                    <input type="text" class="form-control" @bind="closedBy" />
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (closingAmount > 0)
+                        {
+                            var discrepancy = closingAmount - expectedAmount;
+                            <div class="alert @(discrepancy == 0 ? "alert-success" : "alert-warning")">
+                                <strong>Discrepancy:</strong> @discrepancy.ToString("C")
+                                @if (discrepancy == 0)
+                                {
+                                    <span>✓ Perfect match!</span>
+                                }
+                                else if (discrepancy > 0)
+                                {
+                                    <span>Over by @Math.Abs(discrepancy).ToString("C")</span>
+                                }
+                                else
+                                {
+                                    <span>Short by @Math.Abs(discrepancy).ToString("C")</span>
+                                }
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" @bind="closingRegister.Notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CancelCloseForm">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="CloseRegister">Close Register</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="section-card">
+                <h3 class="section-title">Open Registers</h3>
+                @if (openRegisters.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var register in openRegisters)
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5>@register.RegisterName</h5>
+                                        <p class="mb-1"><strong>Vendor:</strong> @register.Vendor.Name</p>
+                                        <small class="text-muted">
+                                            Opened: @register.OpenedAt.ToString("g") by @register.OpenedBy<br />
+                                            Opening Amount: @register.OpeningAmount.ToString("C")
+                                        </small>
+                                    </div>
+                                    <button class="btn btn-warning" @onclick="() => ShowCloseRegisterForm(register)">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No open registers</p>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="section-card">
+                <h3 class="section-title">Recently Closed</h3>
+                @if (closedRegisters.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var register in closedRegisters.Take(5))
+                        {
+                            <div class="list-group-item">
+                                <h6>@register.RegisterName - @register.Vendor.Name</h6>
+                                <small class="text-muted">
+                                    Closed: @register.ClosedAt?.ToString("g")<br />
+                                    Expected: @register.ExpectedAmount.ToString("C") |
+                                    Actual: @register.ClosingAmount?.ToString("C") |
+                                    <span class="@(register.Discrepancy == 0 ? "text-success" : "text-warning")">
+                                        Discrepancy: @register.Discrepancy.ToString("C")
+                                    </span>
+                                </small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No closed registers today</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<CashRegister> allRegisters = new();
+    private List<CashRegister> openRegisters = new();
+    private List<CashRegister> closedRegisters = new();
+    private List<Vendor> vendors = new();
+    private List<Vendor> availableVendors = new();
+
+    private CashRegister newRegister = new();
+    private CashRegister? closingRegister;
+    private bool showOpenForm = false;
+    private bool showCloseForm = false;
+
+    private decimal closingAmount = 0;
+    private decimal expectedAmount = 0;
+    private string closedBy = "";
+    private decimal totalCash = 0;
+    private int discrepancyCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        allRegisters = (await CashRegisterService.GetAllCashRegistersAsync()).ToList();
+        openRegisters = (await CashRegisterService.GetOpenCashRegistersAsync()).ToList();
+        closedRegisters = allRegisters.Where(r => !r.IsOpen && r.ClosedAt?.Date == DateTime.Today).ToList();
+        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+
+        var openVendorIds = openRegisters.Select(r => r.VendorId).ToHashSet();
+        availableVendors = vendors.Where(v => !openVendorIds.Contains(v.Id)).ToList();
+
+        totalCash = openRegisters.Sum(r => r.OpeningAmount);
+        discrepancyCount = closedRegisters.Count(r => Math.Abs(r.Discrepancy) > 0.01m);
+    }
+
+    private void ShowOpenRegisterForm()
+    {
+        newRegister = new CashRegister
+            {
+                RegisterName = $"Register-{DateTime.Now:yyyyMMdd}",
+                OpeningAmount = 100m
+            };
+        showOpenForm = true;
+    }
+
+    private void CancelOpenForm()
+    {
+        newRegister = new CashRegister();
+        showOpenForm = false;
+    }
+
+    private async Task OpenRegister()
+    {
+        if (newRegister.VendorId > 0)
+        {
+            await CashRegisterService.OpenCashRegisterAsync(newRegister);
+            await LoadData();
+            CancelOpenForm();
+        }
+    }
+
+    private async Task ShowCloseRegisterForm(CashRegister register)
+    {
+        closingRegister = register;
+        expectedAmount = await CashRegisterService.CalculateExpectedAmountAsync(register.Id);
+        closingAmount = expectedAmount;
+        closedBy = "";
+        showCloseForm = true;
+    }
+
+    private void CancelCloseForm()
+    {
+        closingRegister = null;
+        closingAmount = 0;
+        closedBy = "";
+        showCloseForm = false;
+    }
+
+    private async Task CloseRegister()
+    {
+        if (closingRegister != null && !string.IsNullOrEmpty(closedBy))
+        {
+            await CashRegisterService.CloseCashRegisterAsync(closingRegister.Id, closingAmount, closedBy);
+            await LoadData();
+            CancelCloseForm();
+        }
+    }
+}

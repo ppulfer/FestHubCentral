@@ -1,0 +1,49 @@
+@using FestHubCentral.Web.Data.Models
+
+<div class="alert-card alert-@Alert.Severity.ToLower()">
+    <div class="alert-header">
+        <span class="alert-icon">@GetIcon()</span>
+        <h4 class="alert-title">@Alert.Title</h4>
+        <span class="alert-time">@GetTimeAgo()</span>
+    </div>
+    <p class="alert-message">@Alert.Message</p>
+    @if (!Alert.IsResolved && OnResolve.HasDelegate)
+    {
+        <button class="btn btn-sm btn-primary" @onclick="HandleResolve">
+            Resolve
+        </button>
+    }
+    @if (Alert.IsResolved)
+    {
+        <div class="alert-resolved">
+            <small>Resolved by @Alert.ResolvedBy at @Alert.ResolvedAt?.ToString("g")</small>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Alert Alert { get; set; } = null!;
+    [Parameter] public EventCallback<int> OnResolve { get; set; }
+
+    private string GetIcon() => Alert.Severity.ToLower() switch
+    {
+        "critical" => "🚨",
+        "warning" => "⚠️",
+        "info" => "ℹ️",
+        _ => "📢"
+    };
+
+    private string GetTimeAgo()
+    {
+        var timeSpan = DateTime.UtcNow - Alert.CreatedAt;
+        if (timeSpan.TotalMinutes < 1) return "Just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours}h ago";
+        return $"{(int)timeSpan.TotalDays}d ago";
+    }
+
+    private async Task HandleResolve()
+    {
+        await OnResolve.InvokeAsync(Alert.Id);
+    }
+}

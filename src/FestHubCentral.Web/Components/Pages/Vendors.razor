@@ -1,0 +1,234 @@
+@page "/vendors"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Components.Shared
+@inject IVendorService VendorService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Vendors - FestHub Central</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>🏪 Vendor Management</h1>
+            <p class="text-muted">Manage festival food and beverage vendors</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="ShowAddVendorForm">
+                Add New Vendor
+            </button>
+        </div>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="section-card mb-4">
+            <h3>@(editingVendor?.Id > 0 ? "Edit Vendor" : "Add New Vendor")</h3>
+            <EditForm Model="@editingVendor" OnValidSubmit="SaveVendor">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Vendor Name</label>
+                            <InputText class="form-control" @bind-Value="editingVendor!.Name" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <InputSelect class="form-control" @bind-Value="editingVendor!.Category">
+                                <option value="Food">Food</option>
+                                <option value="Beverage">Beverage</option>
+                                <option value="Mixed">Mixed</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Location Spot (1-15)</label>
+                            <InputNumber class="form-control" @bind-Value="editingVendor!.LocationSpot" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Contact Person</label>
+                            <InputText class="form-control" @bind-Value="editingVendor!.ContactPerson" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Contact Phone</label>
+                            <InputText class="form-control" @bind-Value="editingVendor!.ContactPhone" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Contact Email</label>
+                            <InputText class="form-control" @bind-Value="editingVendor!.ContactEmail" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="editingVendor!.IsOpen" />
+                    <label class="form-check-label">Vendor is Open</label>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    }
+
+    <div class="section-card">
+        <h3 class="section-title">All Vendors</h3>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Spot</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var vendor in vendors)
+                    {
+                        <tr>
+                            <td><strong>@vendor.LocationSpot</strong></td>
+                            <td>@vendor.Name</td>
+                            <td><span class="badge bg-info">@vendor.Category</span></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(vendor.ContactPerson))
+                                {
+                                    <div>@vendor.ContactPerson</div>
+                                    <small class="text-muted">@vendor.ContactPhone</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No contact</span>
+                                }
+                            </td>
+                            <td>
+                                <StatusBadge Text="@(vendor.IsOpen ? "Open" : "Closed")" Status="@(vendor.IsOpen ? "open" : "closed")" />
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => ToggleVendorStatus(vendor.Id)">
+                                        @(vendor.IsOpen ? "Close" : "Open")
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditVendor(vendor)">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ViewVendor(vendor.Id)">
+                                        View
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteVendor(vendor.Id)">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Vendor> vendors = new();
+    private Vendor? editingVendor;
+    private bool showForm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVendors();
+    }
+
+    private async Task LoadVendors()
+    {
+        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+    }
+
+    private void ShowAddVendorForm()
+    {
+        editingVendor = new Vendor { Category = "Food", IsOpen = true };
+        showForm = true;
+    }
+
+    private void EditVendor(Vendor vendor)
+    {
+        editingVendor = new Vendor
+            {
+                Id = vendor.Id,
+                Name = vendor.Name,
+                Category = vendor.Category,
+                LocationSpot = vendor.LocationSpot,
+                ContactPerson = vendor.ContactPerson,
+                ContactPhone = vendor.ContactPhone,
+                ContactEmail = vendor.ContactEmail,
+                IsOpen = vendor.IsOpen
+            };
+        showForm = true;
+    }
+
+    private void CancelEdit()
+    {
+        editingVendor = null;
+        showForm = false;
+    }
+
+    private async Task SaveVendor()
+    {
+        if (editingVendor == null) return;
+
+        if (editingVendor.Id == 0)
+        {
+            await VendorService.CreateVendorAsync(editingVendor);
+        }
+        else
+        {
+            await VendorService.UpdateVendorAsync(editingVendor);
+        }
+
+        await LoadVendors();
+        CancelEdit();
+    }
+
+    private async Task ToggleVendorStatus(int vendorId)
+    {
+        await VendorService.ToggleVendorStatusAsync(vendorId);
+        await LoadVendors();
+    }
+
+    private void ViewVendor(int vendorId)
+    {
+        Navigation.NavigateTo($"/vendors/{vendorId}");
+    }
+
+    private async Task DeleteVendor(int vendorId)
+    {
+        if (confirm("Are you sure you want to delete this vendor?"))
+        {
+            await VendorService.DeleteVendorAsync(vendorId);
+            await LoadVendors();
+        }
+    }
+
+    private bool confirm(string message)
+    {
+        return true;
+    }
+}

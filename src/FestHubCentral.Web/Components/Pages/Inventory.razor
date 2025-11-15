@@ -1,0 +1,233 @@
+@page "/inventory"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Components.Shared
+@inject IInventoryService InventoryService
+@inject IVendorService VendorService
+@rendermode InteractiveServer
+
+<PageTitle>Inventory - FestHub Central</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>📦 Inventory Management</h1>
+            <p class="text-muted">Monitor and manage stock levels across all vendors</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <StatCard Icon="📊" Value="@totalItems.ToString()" Label="Total Items" />
+        </div>
+        <div class="col-md-3">
+            <StatCard Icon="✅" Value="@goodStockCount.ToString()" Label="Good Stock" CssClass="stat-card-success" />
+        </div>
+        <div class="col-md-3">
+            <StatCard Icon="⚠️" Value="@lowStockCount.ToString()" Label="Low Stock" CssClass="stat-card-warning" />
+        </div>
+        <div class="col-md-3">
+            <StatCard Icon="🚨" Value="@criticalStockCount.ToString()" Label="Critical Stock" CssClass="stat-card-danger" />
+        </div>
+    </div>
+
+    @if (lowStockItems.Any())
+    {
+        <div class="section-card mb-4">
+            <h3 class="section-title">⚠️ Low Stock Alerts</h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Vendor</th>
+                            <th>Stock Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in lowStockItems)
+                        {
+                            <tr class="@(item.CurrentStock <= item.MinimumStock / 2 ? "table-danger" : "table-warning")">
+                                <td><strong>@item.Product.Name</strong></td>
+                                <td>@item.Product.Vendor.Name</td>
+                                <td>
+                                    <InventoryBar
+                                        Label=""
+                                        CurrentStock="@item.CurrentStock"
+                                        MinStock="@item.MinimumStock"
+                                        MaxStock="@item.MaximumStock" />
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" @onclick="() => ShowRestockForm(item)">
+                                        Restock
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (showRestockModal && selectedInventory != null)
+    {
+        <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Restock @selectedInventory.Product.Name</h5>
+                        <button type="button" class="btn-close" @onclick="CloseRestockForm"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Current Stock: <strong>@selectedInventory.CurrentStock</strong></p>
+                        <p>Minimum Stock: <strong>@selectedInventory.MinimumStock</strong></p>
+                        <p>Suggested Reorder: <strong>@selectedInventory.ReorderQuantity</strong></p>
+
+                        <div class="mb-3">
+                            <label class="form-label">Quantity to Add</label>
+                            <input type="number" class="form-control" @bind="restockQuantity" min="1" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseRestockForm">Cancel</button>
+                        <button type="button" class="btn btn-primary" @onclick="PerformRestock">Restock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="section-card">
+        <h3 class="section-title">All Inventory</h3>
+
+        <div class="mb-3">
+            <label class="form-label">Filter by Vendor</label>
+            <select class="form-select" @onchange="FilterByVendor">
+                <option value="">All Vendors</option>
+                @foreach (var vendor in vendors)
+                {
+                    <option value="@vendor.Id">@vendor.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Vendor</th>
+                        <th>Stock Level</th>
+                        <th>Min/Max</th>
+                        <th>Last Restocked</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in filteredInventory)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Product.Name</strong>
+                                <br />
+                                <small class="text-muted">@item.Product.Price.ToString("C") / @item.Product.Unit</small>
+                            </td>
+                            <td>@item.Product.Vendor.Name</td>
+                            <td style="min-width: 200px;">
+                                <InventoryBar
+                                    Label="@item.Product.Name"
+                                    CurrentStock="@item.CurrentStock"
+                                    MinStock="@item.MinimumStock"
+                                    MaxStock="@item.MaximumStock" />
+                            </td>
+                            <td>
+                                <small>Min: @item.MinimumStock</small><br />
+                                <small>Max: @item.MaximumStock</small>
+                            </td>
+                            <td>@item.LastRestocked.ToString("g")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowRestockForm(item)">
+                                    Restock
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<FestHubCentral.Web.Data.Models.Inventory> allInventory = new();
+    private List<FestHubCentral.Web.Data.Models.Inventory> filteredInventory = new();
+    private List<FestHubCentral.Web.Data.Models.Inventory> lowStockItems = new();
+    private List<Vendor> vendors = new();
+
+    private FestHubCentral.Web.Data.Models.Inventory? selectedInventory;
+    private bool showRestockModal = false;
+    private int restockQuantity = 0;
+
+    private int totalItems = 0;
+    private int goodStockCount = 0;
+    private int lowStockCount = 0;
+    private int criticalStockCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        allInventory = (await InventoryService.GetAllInventoryAsync()).ToList();
+        filteredInventory = allInventory;
+        lowStockItems = (await InventoryService.GetLowStockItemsAsync()).ToList();
+        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+
+        totalItems = allInventory.Count;
+        goodStockCount = allInventory.Count(i => i.CurrentStock > i.MinimumStock);
+        lowStockCount = allInventory.Count(i => i.CurrentStock <= i.MinimumStock && i.CurrentStock > i.MinimumStock / 2);
+        criticalStockCount = allInventory.Count(i => i.CurrentStock <= i.MinimumStock / 2);
+    }
+
+    private void FilterByVendor(ChangeEventArgs e)
+    {
+        var vendorIdStr = e.Value?.ToString();
+        if (string.IsNullOrEmpty(vendorIdStr))
+        {
+            filteredInventory = allInventory;
+        }
+        else
+        {
+            var vendorId = int.Parse(vendorIdStr);
+            filteredInventory = allInventory.Where(i => i.Product.VendorId == vendorId).ToList();
+        }
+    }
+
+    private void ShowRestockForm(FestHubCentral.Web.Data.Models.Inventory inventory)
+    {
+        selectedInventory = inventory;
+        restockQuantity = inventory.ReorderQuantity;
+        showRestockModal = true;
+    }
+
+    private void CloseRestockForm()
+    {
+        selectedInventory = null;
+        restockQuantity = 0;
+        showRestockModal = false;
+    }
+
+    private async Task PerformRestock()
+    {
+        if (selectedInventory != null && restockQuantity > 0)
+        {
+            await InventoryService.RestockAsync(selectedInventory.ProductId, restockQuantity);
+            await LoadData();
+            CloseRestockForm();
+        }
+    }
+}

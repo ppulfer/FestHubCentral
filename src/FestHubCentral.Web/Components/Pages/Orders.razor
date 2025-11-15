@@ -1,0 +1,328 @@
+@page "/orders"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Components.Shared
+@inject IOrderService OrderService
+@inject IVendorService VendorService
+@inject IInventoryService InventoryService
+@rendermode InteractiveServer
+
+<PageTitle>Orders - FestHub Central</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>🧾 Order Management</h1>
+            <p class="text-muted">Process sales and view order history</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="ShowNewOrderForm">
+                New Order
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <StatCard Icon="💵" Value="@todaysSales.ToString("C")" Label="Today's Sales" />
+        </div>
+        <div class="col-md-3">
+            <StatCard Icon="📝" Value="@todaysOrderCount.ToString()" Label="Today's Orders" />
+        </div>
+        <div class="col-md-3">
+            <StatCard Icon="💳" Value="@cardSales.ToString("C")" Label="Card Sales" />
+        </div>
+        <div class="col-md-3">
+            <StatCard Icon="💰" Value="@cashSales.ToString("C")" Label="Cash Sales" />
+        </div>
+    </div>
+
+    @if (showNewOrderForm)
+    {
+        <div class="section-card mb-4">
+            <h3>Create New Order</h3>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Vendor</label>
+                    <select class="form-select" @onchange="OnVendorSelected">
+                        <option value="">Select Vendor</option>
+                        @foreach (var vendor in vendors.Where(v => v.IsOpen))
+                        {
+                            <option value="@vendor.Id">@vendor.Name (Spot @vendor.LocationSpot)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Payment Method</label>
+                    <select class="form-select" @bind="newOrder.PaymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                        <option value="FestivalToken">Festival Token</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (selectedVendor != null)
+            {
+                <h4 class="mt-4">Add Items</h4>
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Product</label>
+                        <select class="form-select" @bind="selectedProductId">
+                            <option value="0">Select Product</option>
+                            @foreach (var product in selectedVendor.Products.Where(p => p.IsAvailable))
+                            {
+                                <option value="@product.Id">@product.Name - @product.Price.ToString("C")</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" @bind="quantity" min="1" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-secondary w-100" @onclick="AddOrderItem">Add</button>
+                    </div>
+                </div>
+
+                @if (newOrder.OrderItems.Any())
+                {
+                    <div class="table-responsive mb-3">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in newOrder.OrderItems)
+                                {
+                                    <tr>
+                                        <td>@GetProductName(item.ProductId)</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.UnitPrice.ToString("C")</td>
+                                        <td>@item.Subtotal.ToString("C")</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" @onclick="() => RemoveOrderItem(item)">
+                                                Remove
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td colspan="2"><strong>@newOrder.TotalAmount.ToString("C")</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" @bind="newOrder.Notes" rows="2"></textarea>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-primary" @onclick="SubmitOrder">Submit Order</button>
+                        <button class="btn btn-secondary" @onclick="CancelNewOrder">Cancel</button>
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    <div class="section-card">
+        <h3 class="section-title">Recent Orders</h3>
+
+        <div class="mb-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Vendor</label>
+                    <select class="form-select" @onchange="FilterByVendor">
+                        <option value="">All Vendors</option>
+                        @foreach (var vendor in vendors)
+                        {
+                            <option value="@vendor.Id">@vendor.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" @bind="filterStartDate" @bind:after="ApplyDateFilter" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" @bind="filterEndDate" @bind:after="ApplyDateFilter" />
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date/Time</th>
+                        <th>Vendor</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in filteredOrders.Take(50))
+                    {
+                        <tr>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.OrderDate.ToString("g")</td>
+                            <td>@order.Vendor.Name</td>
+                            <td>@order.OrderItems.Count items</td>
+                            <td><strong>@order.TotalAmount.ToString("C")</strong></td>
+                            <td><span class="badge bg-secondary">@order.PaymentMethod</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Order> allOrders = new();
+    private List<Order> filteredOrders = new();
+    private List<Vendor> vendors = new();
+    private Vendor? selectedVendor;
+
+    private Order newOrder = new();
+    private bool showNewOrderForm = false;
+    private int selectedProductId = 0;
+    private int quantity = 1;
+
+    private decimal todaysSales = 0;
+    private int todaysOrderCount = 0;
+    private decimal cardSales = 0;
+    private decimal cashSales = 0;
+
+    private DateTime filterStartDate = DateTime.Today;
+    private DateTime filterEndDate = DateTime.Today;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        allOrders = (await OrderService.GetAllOrdersAsync()).ToList();
+        filteredOrders = allOrders;
+        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+
+        todaysSales = await OrderService.GetTotalSalesByDateAsync(DateTime.Today);
+        var todaysOrders = await OrderService.GetOrdersByDateRangeAsync(DateTime.Today, DateTime.Today.AddDays(1));
+        todaysOrderCount = todaysOrders.Count();
+
+        var paymentBreakdown = await OrderService.GetSalesByPaymentMethodAsync(DateTime.Today);
+        cardSales = paymentBreakdown.GetValueOrDefault("Card", 0);
+        cashSales = paymentBreakdown.GetValueOrDefault("Cash", 0);
+    }
+
+    private void ShowNewOrderForm()
+    {
+        newOrder = new Order
+            {
+                PaymentMethod = "Cash",
+                OrderItems = new List<OrderItem>()
+            };
+        showNewOrderForm = true;
+    }
+
+    private void CancelNewOrder()
+    {
+        newOrder = new Order();
+        selectedVendor = null;
+        selectedProductId = 0;
+        quantity = 1;
+        showNewOrderForm = false;
+    }
+
+    private async Task OnVendorSelected(ChangeEventArgs e)
+    {
+        var vendorIdStr = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(vendorIdStr))
+        {
+            var vendorId = int.Parse(vendorIdStr);
+            selectedVendor = await VendorService.GetVendorByIdAsync(vendorId);
+            newOrder.VendorId = vendorId;
+        }
+    }
+
+    private void AddOrderItem()
+    {
+        if (selectedProductId > 0 && quantity > 0 && selectedVendor != null)
+        {
+            var product = selectedVendor.Products.FirstOrDefault(p => p.Id == selectedProductId);
+            if (product != null)
+            {
+                var orderItem = new OrderItem
+                    {
+                        ProductId = product.Id,
+                        Quantity = quantity,
+                        UnitPrice = product.Price,
+                        Subtotal = product.Price * quantity
+                    };
+
+                newOrder.OrderItems.Add(orderItem);
+                newOrder.TotalAmount = newOrder.OrderItems.Sum(oi => oi.Subtotal);
+
+                selectedProductId = 0;
+                quantity = 1;
+            }
+        }
+    }
+
+    private void RemoveOrderItem(OrderItem item)
+    {
+        newOrder.OrderItems.Remove(item);
+        newOrder.TotalAmount = newOrder.OrderItems.Sum(oi => oi.Subtotal);
+    }
+
+    private async Task SubmitOrder()
+    {
+        if (newOrder.OrderItems.Any())
+        {
+            await OrderService.CreateOrderAsync(newOrder);
+            await LoadData();
+            CancelNewOrder();
+        }
+    }
+
+    private string GetProductName(int productId)
+    {
+        return selectedVendor?.Products.FirstOrDefault(p => p.Id == productId)?.Name ?? "Unknown";
+    }
+
+    private void FilterByVendor(ChangeEventArgs e)
+    {
+        var vendorIdStr = e.Value?.ToString();
+        if (string.IsNullOrEmpty(vendorIdStr))
+        {
+            filteredOrders = allOrders;
+        }
+        else
+        {
+            var vendorId = int.Parse(vendorIdStr);
+            filteredOrders = allOrders.Where(o => o.VendorId == vendorId).ToList();
+        }
+    }
+
+    private async Task ApplyDateFilter()
+    {
+        filteredOrders = (await OrderService.GetOrdersByDateRangeAsync(filterStartDate, filterEndDate.AddDays(1))).ToList();
+    }
+}
