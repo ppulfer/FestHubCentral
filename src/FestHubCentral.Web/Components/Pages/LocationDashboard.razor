@@ -1,0 +1,217 @@
+@page "/location-dashboard"
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Services.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILocationTransferRequestService TransferRequestService
+@inject IProductLocationService ProductLocationService
+@inject ISettingsService SettingsService
+@inject NavigationManager Navigation
+
+<PageTitle>Location Dashboard</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Location Dashboard</li>
+        </ol>
+    </nav>
+
+    @if (authState?.User?.Identity?.IsAuthenticated == true)
+    {
+        @if (userLocation != null)
+        {
+            <h1>@userLocation.Name</h1>
+            <p class="text-muted">Spot @userLocation.LocationSpot - @userLocation.Category</p>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Products</h5>
+                            <p class="card-text display-6">@(productLocations?.Count ?? 0)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Transfer Requests</h5>
+                            <p class="card-text display-6">@(transferRequests?.Count ?? 0)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Pending Requests</h5>
+                            <p class="card-text display-6">@(transferRequests?.Count(r => r.Status == TransferRequestStatus.Pending) ?? 0)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Event Year</h5>
+                            <p class="card-text display-6">@upcomingEventYear</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Your Products</h5>
+                            <a href="/location-transfer-request" class="btn btn-light btn-sm">Request Transfer</a>
+                        </div>
+                        <div class="card-body">
+                            @if (productLocations?.Any() == true)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Planned</th>
+                                                <th>Initial</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var pl in productLocations.Take(10))
+                                            {
+                                                <tr>
+                                                    <td>@pl.Product?.Name</td>
+                                                    <td>@pl.PlannedAmount</td>
+                                                    <td>@pl.InitialDelivery</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                @if (productLocations.Count > 10)
+                                {
+                                    <p class="text-muted small">Showing 10 of @productLocations.Count products</p>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">No products assigned to this location.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">Your Transfer Requests</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (transferRequests?.Any() == true)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var tr in transferRequests.OrderByDescending(r => r.RequestedAt).Take(10))
+                                            {
+                                                <tr>
+                                                    <td>@tr.Product?.Name</td>
+                                                    <td>@tr.Amount</td>
+                                                    <td>
+                                                        @switch(tr.Status)
+                                                        {
+                                                            case TransferRequestStatus.Pending:
+                                                                <span class="badge bg-warning">Pending</span>
+                                                                break;
+                                                            case TransferRequestStatus.Approved:
+                                                                <span class="badge bg-success">Approved</span>
+                                                                break;
+                                                            case TransferRequestStatus.Rejected:
+                                                                <span class="badge bg-danger">Rejected</span>
+                                                                break;
+                                                            case TransferRequestStatus.Completed:
+                                                                <span class="badge bg-info">Completed</span>
+                                                                break;
+                                                        }
+                                                    </td>
+                                                    <td>@tr.RequestedAt.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                @if (transferRequests.Count > 10)
+                                {
+                                    <p class="text-muted small">Showing 10 of @transferRequests.Count requests</p>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-muted">No transfer requests yet.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <p>Your account is not associated with a location. Please contact the administrator.</p>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <p>Please log in to view the location dashboard.</p>
+        </div>
+    }
+</div>
+
+@code {
+    private AuthenticationState? authState;
+    private Location? userLocation;
+    private List<ProductLocation>? productLocations;
+    private List<TransferRequest>? transferRequests;
+    private int upcomingEventYear;
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        if (authState?.User?.Identity?.IsAuthenticated == true)
+        {
+            var settings = await SettingsService.GetSettingsAsync();
+            upcomingEventYear = settings?.UpcomingEventYear ?? DateTime.Now.Year;
+
+            var userEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+            if (!string.IsNullOrEmpty(userEmail))
+            {
+                var user = await SettingsService.GetApplicationUserByEmailAsync(userEmail);
+                if (user?.LocationId.HasValue == true)
+                {
+                    userLocation = await SettingsService.GetLocationByIdAsync(user.LocationId.Value);
+                    if (userLocation != null)
+                    {
+                        productLocations = (await ProductLocationService.GetProductLocationsByLocationAsync(userLocation.Id, upcomingEventYear)).ToList();
+                        transferRequests = (await TransferRequestService.GetRequestsByLocationAndYearAsync(userLocation.Id, upcomingEventYear)).ToList();
+                    }
+                }
+            }
+        }
+    }
+}

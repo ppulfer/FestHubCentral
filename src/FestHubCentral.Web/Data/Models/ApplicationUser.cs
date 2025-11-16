@@ -7,4 +7,7 @@ public class ApplicationUser : IdentityUser
     public string? DisplayName { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool RequiresPasswordChange { get; set; }
+
+    public int? LocationId { get; set; }
+    public Location? Location { get; set; }
 }

@@ -25,63 +25,93 @@
 
 <div class="nav-scrollable">
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Dashboard">
-                <i class="bi bi-speedometer2"></i>
-                @if (!IsCollapsed)
-                {
-                    <span class="nav-text">@Localizer["Nav.Dashboard"]</span>
-                }
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="locations" title="Locations">
-                <i class="bi bi-geo-alt-fill"></i>
-                @if (!IsCollapsed)
-                {
-                    <span class="nav-text">@Localizer["Nav.Vendors"]</span>
-                }
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="inventory" title="Inventory">
-                <i class="bi bi-box-seam"></i>
-                @if (!IsCollapsed)
-                {
-                    <span class="nav-text">@Localizer["Nav.Inventory"].Value</span>
-                }
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="inventory-transfers" title="Inventory Transfers">
-                <i class="bi bi-arrow-left-right"></i>
-                @if (!IsCollapsed)
-                {
-                    <span class="nav-text">@Localizer["Nav.InventoryTransfers"].Value</span>
-                }
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="settings" title="Settings">
-                <i class="bi bi-gear-fill"></i>
-                @if (!IsCollapsed)
-                {
-                    <span class="nav-text">@Localizer["Nav.Settings"].Value</span>
-                }
-            </NavLink>
-        </div>
-
         <AuthorizeView Roles="Admin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">@Localizer["Nav.Dashboard"]</span>
+                    }
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="locations" title="Locations">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">@Localizer["Nav.Vendors"]</span>
+                    }
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="inventory" title="Inventory">
+                    <i class="bi bi-box-seam"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">@Localizer["Nav.Inventory"].Value</span>
+                    }
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="inventory-transfers" title="Inventory Transfers">
+                    <i class="bi bi-arrow-left-right"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">@Localizer["Nav.InventoryTransfers"].Value</span>
+                    }
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="settings" title="Settings">
+                    <i class="bi bi-gear-fill"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">@Localizer["Nav.Settings"].Value</span>
+                    }
+                </NavLink>
+            </div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="account/register" title="Register User">
                     <i class="bi bi-person-plus-fill"></i>
                     @if (!IsCollapsed)
                     {
                         <span class="nav-text">Register User</span>
+                    }
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="admin/transfer-requests" title="Transfer Requests">
+                    <i class="bi bi-clipboard-check"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">Transfer Requests</span>
+                    }
+                </NavLink>
+            </div>
+        </AuthorizeView>
+        <AuthorizeView Roles="Location">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="location-dashboard" title="Location Dashboard">
+                    <i class="bi bi-building"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">Location Dashboard</span>
+                    }
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="location-transfer-request" title="Request Transfer">
+                    <i class="bi bi-cart-plus"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">Request Transfer</span>
                     }
                 </NavLink>
             </div>

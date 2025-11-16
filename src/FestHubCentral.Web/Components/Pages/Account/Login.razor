@@ -48,9 +48,9 @@
             }
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <InputText id="email" @bind-Value="loginModel!.Email" class="form-control" placeholder="your@email.com" />
-                <ValidationMessage For="@(() => loginModel!.Email)" />
+                <label for="username">Username</label>
+                <InputText id="username" @bind-Value="loginModel!.Username" class="form-control" placeholder="username" />
+                <ValidationMessage For="@(() => loginModel!.Username)" />
             </div>
 
             <div class="form-group">
@@ -217,7 +217,7 @@
         try
         {
             var result = await SignInManager.PasswordSignInAsync(
-                loginModel.Email,
+                loginModel.Username,
                 loginModel.Password,
                 loginModel.RememberMe,
                 lockoutOnFailure: false
@@ -225,7 +225,7 @@
 
             if (result.Succeeded)
             {
-                var user = await UserManager.FindByEmailAsync(loginModel.Email);
+                var user = await UserManager.FindByNameAsync(loginModel.Username);
                 if (user?.RequiresPasswordChange == true)
                 {
                     Navigation.NavigateTo("/account/change-password", forceLoad: true);
@@ -237,7 +237,7 @@
             }
             else
             {
-                errorMessage = "Invalid email or password.";
+                errorMessage = "Invalid username or password.";
             }
         }
         catch (Exception ex)
@@ -248,9 +248,8 @@
 
     public class LoginModel
     {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
-        public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = string.Empty;

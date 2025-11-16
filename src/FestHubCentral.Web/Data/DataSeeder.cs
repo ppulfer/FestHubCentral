@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FestHubCentral.Web.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace FestHubCentral.Web.Data;
@@ -14,6 +15,69 @@ public static class DataSeeder
         PropertyNameCaseInsensitive = true,
         Converters = { new CustomDateTimeConverter() }
     };
+    
+    public static async Task SeedUsers(IServiceProvider serviceProvider, ApplicationDbContext context)
+    {
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+
+        const string adminEmail = "admin@festhub.ch";
+        const string adminPassword = "Admin123!";
+
+        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        {
+            var adminUser = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                DisplayName = "Administrator",
+                EmailConfirmed = true,
+                RequiresPasswordChange = true
+            };
+
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
+        
+        // Create an Account for each Location if not exists
+        if (!await roleManager.RoleExistsAsync("Location"))
+        {
+            await roleManager.CreateAsync(new IdentityRole("Location"));
+        }
+        
+        var locations = await context.Locations.ToListAsync();
+        foreach (var loc in locations)
+        {
+            // replace all special characters in loc.Name to create a valid username
+            var username = "location" + loc.Id;
+            if (await userManager.FindByNameAsync(username) == null)
+            {
+                var locationUser = new ApplicationUser
+                {
+                    UserName = username,
+                    Email = username + "@festhub.ch",
+                    DisplayName = loc.Name,
+                    EmailConfirmed = true,
+                    RequiresPasswordChange = false,
+                    LocationId = loc.Id,
+                };
+
+                var result = await userManager.CreateAsync(locationUser, "Start1234!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(locationUser, "Location");
+                }
+            }
+        }
+    }
 
     public static async Task SeedFromJsonFiles(ApplicationDbContext context)
     {

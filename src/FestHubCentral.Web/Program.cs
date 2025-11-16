@@ -50,6 +50,7 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();
+builder.Services.AddScoped<ILocationTransferRequestService, LocationTransferRequestService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
@@ -64,10 +65,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await SeedAdminUser(services);
 
     var context = services.GetRequiredService<ApplicationDbContext>();
     await DataSeeder.SeedFromJsonFiles(context);
+    await DataSeeder.SeedUsers(services, context);
 }
 
 // Configure the HTTP request pipeline.
@@ -95,35 +96,3 @@ app.MapHub<FestivalHub>("/festivalhub");
 app.MapControllers();
 
 app.Run();
-
-static async Task SeedAdminUser(IServiceProvider serviceProvider)
-{
-    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-    if (!await roleManager.RoleExistsAsync("Admin"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("Admin"));
-    }
-
-    const string adminEmail = "admin@festhub.ch";
-    const string adminPassword = "Admin123!";
-
-    if (await userManager.FindByEmailAsync(adminEmail) == null)
-    {
-        var adminUser = new ApplicationUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            DisplayName = "Administrator",
-            EmailConfirmed = true,
-            RequiresPasswordChange = true
-        };
-
-        var result = await userManager.CreateAsync(adminUser, adminPassword);
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
-    }
-}

@@ -1,0 +1,371 @@
+@page "/admin/transfer-requests"
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Services.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject ILocationTransferRequestService TransferRequestService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Transfer Requests Management</PageTitle>
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Transfer Requests</li>
+        </ol>
+    </nav>
+
+    <h1>Transfer Requests Management</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Pending</h5>
+                    <p class="card-text display-6">@(pendingRequests?.Count ?? 0)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Approved</h5>
+                    <p class="card-text display-6">@(approvedRequests?.Count ?? 0)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Rejected</h5>
+                    <p class="card-text display-6">@(rejectedRequests?.Count ?? 0)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total</h5>
+                    <p class="card-text display-6">@(allRequests?.Count ?? 0)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(selectedTab == "pending" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("pending", e))">
+                Pending <span class="badge bg-warning">@(pendingRequests?.Count ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(selectedTab == "approved" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("approved", e))">
+                Approved <span class="badge bg-success">@(approvedRequests?.Count ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(selectedTab == "rejected" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("rejected", e))">
+                Rejected <span class="badge bg-danger">@(rejectedRequests?.Count ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(selectedTab == "all" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("all", e))">
+                All
+            </a>
+        </li>
+    </ul>
+
+    @if (selectedTab == "pending")
+    {
+        @if (pendingRequests?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Requested</th>
+                            <th>User</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in pendingRequests)
+                        {
+                            <tr>
+                                <td>@request.FromLocation?.Name</td>
+                                <td>@(request.ToLocation?.Name ?? "Warehouse")</td>
+                                <td>@request.Product?.Name</td>
+                                <td>@request.Amount</td>
+                                <td>@request.RequestedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@(request.RequestedByUser?.DisplayName ?? request.RequestedByUser?.Email)</td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" @onclick="@(() => HandleApprove(request.Id))">Approve</button>
+                                    <button class="btn btn-sm btn-danger" @onclick="@(() => HandleRejectClick(request.Id))">Reject</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">No pending transfer requests.</div>
+        }
+    }
+    else if (selectedTab == "approved")
+    {
+        @if (approvedRequests?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Approved By</th>
+                            <th>Approved Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in approvedRequests)
+                        {
+                            <tr>
+                                <td>@request.FromLocation?.Name</td>
+                                <td>@(request.ToLocation?.Name ?? "Warehouse")</td>
+                                <td>@request.Product?.Name</td>
+                                <td>@request.Amount</td>
+                                <td>@(request.ReviewedByUser?.DisplayName ?? request.ReviewedByUser?.Email)</td>
+                                <td>@request.ReviewedAt?.ToString("dd.MM.yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">No approved transfer requests.</div>
+        }
+    }
+    else if (selectedTab == "rejected")
+    {
+        @if (rejectedRequests?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Rejected By</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in rejectedRequests)
+                        {
+                            <tr>
+                                <td>@request.FromLocation?.Name</td>
+                                <td>@request.Product?.Name</td>
+                                <td>@request.Amount</td>
+                                <td>@(request.ReviewedByUser?.DisplayName ?? request.ReviewedByUser?.Email)</td>
+                                <td>@request.RejectionReason</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">No rejected transfer requests.</div>
+        }
+    }
+    else
+    {
+        @if (allRequests?.Any() == true)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in allRequests.OrderByDescending(r => r.RequestedAt))
+                        {
+                            <tr>
+                                <td>@request.FromLocation?.Name</td>
+                                <td>@request.Product?.Name</td>
+                                <td>@request.Amount</td>
+                                <td>
+                                    @switch(request.Status)
+                                    {
+                                        case TransferRequestStatus.Pending:
+                                            <span class="badge bg-warning">Pending</span>
+                                            break;
+                                        case TransferRequestStatus.Approved:
+                                            <span class="badge bg-success">Approved</span>
+                                            break;
+                                        case TransferRequestStatus.Rejected:
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+                                        case TransferRequestStatus.Completed:
+                                            <span class="badge bg-info">Completed</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@request.RequestedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">No transfer requests.</div>
+        }
+    }
+
+    @if (rejectionDialogVisible)
+    {
+        <div class="modal d-block" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Reject Transfer Request</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please provide a reason for rejecting this transfer request:</p>
+                        <textarea class="form-control" rows="4" @bind="rejectionReason"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="@(() => rejectionDialogVisible = false)">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="HandleRejectConfirm">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show position-fixed bottom-0 end-0 m-3" role="alert" style="z-index: 9999;">
+            @successMessage
+            <button type="button" class="btn-close" @onclick="@(() => successMessage = null)"></button>
+        </div>
+    }
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show position-fixed bottom-0 end-0 m-3" role="alert" style="z-index: 9999;">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="@(() => errorMessage = null)"></button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TransferRequest>? pendingRequests;
+    private List<TransferRequest>? approvedRequests;
+    private List<TransferRequest>? rejectedRequests;
+    private List<TransferRequest>? allRequests;
+    private string selectedTab = "pending";
+    private string? successMessage;
+    private string? errorMessage;
+    private bool rejectionDialogVisible = false;
+    private int selectedRequestForRejection = 0;
+    private string rejectionReason = "";
+    private string? currentAdminId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState?.User?.Identity?.IsAuthenticated == true)
+        {
+            currentAdminId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        await LoadRequests();
+    }
+
+    private async Task LoadRequests()
+    {
+        try
+        {
+            var requests = (await TransferRequestService.GetAllRequestsAsync()).ToList();
+            allRequests = requests;
+            pendingRequests = requests.Where(r => r.Status == TransferRequestStatus.Pending).ToList();
+            approvedRequests = requests.Where(r => r.Status == TransferRequestStatus.Approved).ToList();
+            rejectedRequests = requests.Where(r => r.Status == TransferRequestStatus.Rejected).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading requests: {ex.Message}";
+        }
+    }
+
+    private void SelectTab(string tab, MouseEventArgs e)
+    {
+        selectedTab = tab;
+    }
+
+    private async Task HandleApprove(int requestId)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(currentAdminId))
+                throw new InvalidOperationException("Unable to determine current user.");
+
+            await TransferRequestService.ApproveRequestAsync(requestId, currentAdminId);
+            successMessage = "Transfer request approved successfully.";
+            await LoadRequests();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error approving request: {ex.Message}";
+        }
+    }
+
+    private void HandleRejectClick(int requestId)
+    {
+        selectedRequestForRejection = requestId;
+        rejectionReason = "";
+        rejectionDialogVisible = true;
+    }
+
+    private async Task HandleRejectConfirm()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(currentAdminId))
+                throw new InvalidOperationException("Unable to determine current user.");
+
+            await TransferRequestService.RejectRequestAsync(selectedRequestForRejection, currentAdminId, rejectionReason);
+            successMessage = "Transfer request rejected.";
+            rejectionDialogVisible = false;
+            await LoadRequests();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error rejecting request: {ex.Message}";
+            rejectionDialogVisible = false;
+        }
+    }
+}

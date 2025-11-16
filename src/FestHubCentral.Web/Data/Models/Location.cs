@@ -30,4 +30,5 @@ public class Location
     public DateTime? UpdatedAt { get; set; }
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ApplicationUser? LocationUser { get; set; }
 }

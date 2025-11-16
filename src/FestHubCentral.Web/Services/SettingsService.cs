@@ -122,4 +122,33 @@ public class SettingsService : ISettingsService
 
         return $"/uploads/branding/{uniqueFileName}";
     }
+
+    public async Task<ApplicationUser?> GetApplicationUserByEmailAsync(string email)
+    {
+        return await _context.Users
+            .Include(u => u.Location)
+            .FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    public async Task<Location?> GetLocationByIdAsync(int locationId)
+    {
+        return await _context.Locations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(l => l.Id == locationId);
+    }
+
+    public async Task<List<Product>> GetAllProductsAsync()
+    {
+        return await _context.Products
+            .Include(p => p.Supplier)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<List<Location>> GetAllLocationsAsync()
+    {
+        return await _context.Locations
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }
