@@ -1,0 +1,543 @@
+@page "/locations/{LocationId:int}"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Components.Shared
+@inject ILocationService LocationService
+@inject IProductLocationService ProductLocationService
+@inject IInventoryService InventoryService
+@inject IInventoryTransferService TransferService
+@inject ISettingsService SettingsService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>@location?.Name - Location Details</PageTitle>
+
+<div class="container-fluid">
+    @if (location != null)
+    {
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/locations">Locations</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">@location.Name</li>
+                    </ol>
+                </nav>
+                <h1>🏪 @location.Name</h1>
+                <p class="text-muted">Location Spot @location.LocationSpot • @location.Category</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @onclick="ShowAddForecastForm">
+                    <i class="bi bi-plus-circle"></i> Add Products
+                </button>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <StatCard Icon="📦" Value="@totalProducts.ToString()" Label="Total Products" />
+            </div>
+            <div class="col-md-3">
+                <StatCard Icon="📊" Value="@totalAmount.ToString()" Label="Total Planned Amount" />
+            </div>
+            <div class="col-md-3">
+                <StatCard Icon="🚚" Value="@totalInitialDelivery.ToString()" Label="Initial Delivery" />
+            </div>
+            <div class="col-md-3">
+                <div class="section-card h-100">
+                    <label class="form-label">Event Year</label>
+                    <select class="form-select" @bind="selectedEventYear" @bind:after="LoadForecasts">
+                        @foreach (var year in availableYears)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h3 class="section-title">Product for @selectedEventYear</h3>
+
+            @if (forecasts.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Supplier</th>
+                                <th>Planned Amount</th>
+                                <th>Initial Delivery</th>
+                                <th>Current Stock</th>
+                                <th>Trend</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var forecast in GetPagedForecasts())
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@forecast.Product.Name</strong><br />
+                                        <small class="text-muted">@forecast.Product.Description</small>
+                                    </td>
+                                    <td>@forecast.Product.Supplier.Name</td>
+                                    <td><span class="badge bg-primary">@forecast.PlannedAmount</span></td>
+                                    <td><span class="badge bg-success">@forecast.InitialDelivery</span></td>
+                                    <td>@GetCurrentStockDisplay(forecast)</td>
+                                    <td>@GetTrendDisplay(forecast)</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(forecast.Notes))
+                                        {
+                                            <small>@forecast.Notes</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-secondary" @onclick="() => EditForecast(forecast)">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => DeleteForecast(forecast.Id)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    <Pagination CurrentPage="@currentPage"
+                                TotalItems="@forecasts.Count"
+                                PageSize="@pageSize"
+                                OnPageChange="@HandlePageChange" />
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <p class="text-muted mt-3">No products yet for @selectedEventYear</p>
+                    <button class="btn btn-primary" @onclick="ShowAddForecastForm">
+                        <i class="bi bi-plus-circle"></i> Add First Product
+                    </button>
+                </div>
+            }
+        </div>
+
+        <div class="section-card mt-4">
+            <h3 class="section-title">Inventory Transfers for @selectedEventYear</h3>
+
+            @if (transfers.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                                <th>Comment</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transfer in transfers.Take(20))
+                            {
+                                <tr>
+                                    <td>
+                                        <small>@transfer.TransferDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <strong>@transfer.Product.Name</strong>
+                                    </td>
+                                    <td>
+                                        @if (transfer.FromLocation != null)
+                                        {
+                                            <span class="badge @(transfer.FromLocationId == LocationId ? "bg-warning" : "bg-secondary")">
+                                                @transfer.FromLocation.Name
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Warehouse</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (transfer.ToLocation != null)
+                                        {
+                                            <span class="badge @(transfer.ToLocationId == LocationId ? "bg-success" : "bg-secondary")">
+                                                @transfer.ToLocation.Name
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Warehouse</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (transfer.ToLocationId == LocationId)
+                                        {
+                                            <span class="text-success">+@transfer.Amount</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">-@transfer.Amount</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(transfer.Comment))
+                                        {
+                                            <small>@transfer.Comment</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (transfer.CreatedByUser != null)
+                                        {
+                                            <small>@transfer.CreatedByUser.UserName</small>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">System</small>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (transfers.Count > 20)
+                {
+                    <p class="text-muted text-center mt-3">
+                        <small>Showing 20 of @transfers.Count transfers</small>
+                    </p>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-arrow-left-right display-1 text-muted"></i>
+                    <p class="text-muted mt-3">No inventory transfers yet for @selectedEventYear</p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+</div>
+
+@if (showForecastModal && editingForecast != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingForecast.Id > 0 ? "Edit" : "Add") Product</h5>
+                    <button type="button" class="btn-close" @onclick="CloseForecastModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@editingForecast" OnValidSubmit="SaveForecast">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Product</label>
+                            <select class="form-select" @bind="editingForecast.ProductId" disabled="@(editingForecast.Id > 0)">
+                                <option value="0">Select Product...</option>
+                                @foreach (var product in availableProducts)
+                                {
+                                    <option value="@product.Id">@product.Name (@product.Supplier.Name)</option>
+                                }
+                            </select>
+                            @if (editingForecast.Id > 0)
+                            {
+                                <small class="text-muted">Product cannot be changed after creation</small>
+                            }
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Planned Amount</label>
+                                    <InputNumber class="form-control" @bind-Value="editingForecast.PlannedAmount" min="0" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Initial Delivery</label>
+                                    <InputNumber class="form-control" @bind-Value="editingForecast.InitialDelivery" min="0" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes (Optional)</label>
+                            <InputTextArea class="form-control" @bind-Value="editingForecast.Notes" rows="3" />
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseForecastModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Forecast</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int LocationId { get; set; }
+
+    private Location? location;
+    private List<ProductLocation> forecasts = new();
+    private List<InventoryTransfer> transfers = new();
+    private Dictionary<int, int> previousYearAmounts = new();
+    private Dictionary<int, int> productStockCalculations = new();
+    private List<Product> availableProducts = new();
+    private List<int> availableYears = new();
+    private int selectedEventYear = 2024;
+
+    private int totalProducts = 0;
+    private int totalAmount = 0;
+    private int totalInitialDelivery = 0;
+
+    private bool showForecastModal = false;
+    private ProductLocation? editingForecast;
+
+    private int currentPage = 1;
+    private const int pageSize = 30;
+
+    protected override async Task OnInitializedAsync()
+    {
+        location = await LocationService.GetLocationByIdAsync(LocationId);
+
+        if (location == null)
+        {
+            Navigation.NavigateTo("/locations");
+            return;
+        }
+
+        var settings = await SettingsService.GetSettingsAsync();
+        if (settings?.UpcomingEvent != null)
+        {
+            selectedEventYear = settings.UpcomingEvent.Year;
+        }
+
+        availableYears = new List<int> { 2024, 2026 };
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        await LoadForecasts();
+        await LoadAvailableProducts();
+    }
+
+    private async Task LoadForecasts()
+    {
+        forecasts = (await ProductLocationService.GetProductLocationsByLocationAsync(LocationId, selectedEventYear)).ToList();
+        transfers = (await TransferService.GetTransfersByLocationAndYearAsync(LocationId, selectedEventYear)).ToList();
+
+        totalProducts = forecasts.Count;
+        totalAmount = forecasts.Sum(f => f.PlannedAmount);
+        totalInitialDelivery = forecasts.Sum(f => f.InitialDelivery);
+
+        previousYearAmounts.Clear();
+        var previousYear = availableYears.Where(y => y < selectedEventYear).OrderByDescending(y => y).FirstOrDefault();
+        if (previousYear > 0)
+        {
+            var previousForecasts = await ProductLocationService.GetProductLocationsByLocationAsync(LocationId, previousYear);
+            foreach (var forecast in previousForecasts)
+            {
+                previousYearAmounts[forecast.ProductId] = forecast.PlannedAmount;
+            }
+        }
+
+        CalculateCurrentStock();
+
+        currentPage = 1;
+    }
+
+    private void CalculateCurrentStock()
+    {
+        productStockCalculations.Clear();
+
+        foreach (var forecast in forecasts)
+        {
+            var currentStock = forecast.InitialDelivery;
+
+            var productTransfers = transfers.Where(t => t.ProductId == forecast.ProductId);
+            foreach (var transfer in productTransfers)
+            {
+                if (transfer.ToLocationId == LocationId)
+                {
+                    currentStock += transfer.Amount;
+                }
+                else if (transfer.FromLocationId == LocationId)
+                {
+                    currentStock -= transfer.Amount;
+                }
+            }
+
+            productStockCalculations[forecast.ProductId] = currentStock;
+        }
+    }
+
+    private async Task LoadAvailableProducts()
+    {
+        var allInventory = await InventoryService.GetAllInventoryAsync();
+        availableProducts = allInventory
+            .Select(i => i.Product)
+            .DistinctBy(p => p.Id)
+            .OrderBy(p => p.Name)
+            .ToList();
+    }
+
+    private void ShowAddForecastForm()
+    {
+        editingForecast = new ProductLocation
+        {
+            LocationId = LocationId,
+            EventYear = selectedEventYear,
+            PlannedAmount = 0,
+            InitialDelivery = 0
+        };
+        showForecastModal = true;
+    }
+
+    private void EditForecast(ProductLocation forecast)
+    {
+        editingForecast = new ProductLocation
+        {
+            Id = forecast.Id,
+            ProductId = forecast.ProductId,
+            LocationId = forecast.LocationId,
+            EventYear = forecast.EventYear,
+            PlannedAmount = forecast.PlannedAmount,
+            InitialDelivery = forecast.InitialDelivery,
+            Notes = forecast.Notes
+        };
+        showForecastModal = true;
+    }
+
+    private void CloseForecastModal()
+    {
+        showForecastModal = false;
+        editingForecast = null;
+    }
+
+    private async Task SaveForecast()
+    {
+        if (editingForecast == null) return;
+
+        if (editingForecast.Id == 0)
+        {
+            var exists = await ProductLocationService.ProductLocationExistsAsync(
+                editingForecast.ProductId,
+                editingForecast.LocationId,
+                editingForecast.EventYear);
+
+            if (exists)
+            {
+                return;
+            }
+
+            await ProductLocationService.CreateProductLocationAsync(editingForecast);
+        }
+        else
+        {
+            await ProductLocationService.UpdateProductLocationAsync(editingForecast);
+        }
+
+        await LoadForecasts();
+        CloseForecastModal();
+    }
+
+    private async Task DeleteForecast(int forecastId)
+    {
+        await ProductLocationService.DeleteProductLocationAsync(forecastId);
+        await LoadForecasts();
+    }
+
+    private IEnumerable<ProductLocation> GetPagedForecasts()
+    {
+        return forecasts
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize);
+    }
+
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private MarkupString GetTrendDisplay(ProductLocation forecast)
+    {
+        if (!previousYearAmounts.TryGetValue(forecast.ProductId, out var previousAmount))
+        {
+            return new MarkupString("<span class='text-muted'>-</span>");
+        }
+
+        var difference = forecast.PlannedAmount - previousAmount;
+        var percentChange = previousAmount > 0 ? (difference * 100.0 / previousAmount) : 0;
+
+        if (difference > 0)
+        {
+            return new MarkupString($"<span class='text-success'><i class='bi bi-arrow-up'></i> +{difference} ({percentChange:F0}%)</span>");
+        }
+        else if (difference < 0)
+        {
+            return new MarkupString($"<span class='text-danger'><i class='bi bi-arrow-down'></i> {difference} ({percentChange:F0}%)</span>");
+        }
+        else
+        {
+            return new MarkupString("<span class='text-muted'><i class='bi bi-dash'></i> No change</span>");
+        }
+    }
+
+    private MarkupString GetCurrentStockDisplay(ProductLocation forecast)
+    {
+        if (!productStockCalculations.TryGetValue(forecast.ProductId, out var currentStock))
+        {
+            return new MarkupString("<span class='text-muted'>-</span>");
+        }
+
+        var stockPercentage = forecast.PlannedAmount > 0 ? (currentStock * 100.0 / forecast.PlannedAmount) : 0;
+
+        string badgeClass = "bg-info";
+        if (stockPercentage < 25)
+            badgeClass = "bg-danger";
+        else if (stockPercentage < 50)
+            badgeClass = "bg-warning";
+        else if (stockPercentage < 100)
+            badgeClass = "bg-primary";
+        else if (currentStock >= forecast.PlannedAmount)
+            badgeClass = "bg-success";
+
+        return new MarkupString($"<span class='badge {badgeClass}'>{currentStock} ({stockPercentage:F0}%)</span>");
+    }
+}

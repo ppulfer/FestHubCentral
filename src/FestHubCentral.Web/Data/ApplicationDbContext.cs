@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductEventPrice> ProductEventPrices => Set<ProductEventPrice>();
+    public DbSet<ProductLocation> ProductLocations => Set<ProductLocation>();
     public DbSet<Inventory> Inventories => Set<Inventory>();
     public DbSet<InventoryTransfer> InventoryTransfers => Set<InventoryTransfer>();
     public DbSet<Order> Orders => Set<Order>();
@@ -86,6 +87,28 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.PurchasePrice).HasPrecision(18, 2);
             entity.Property(e => e.SellingPrice).HasPrecision(18, 2);
             entity.Property(e => e.SpecialPrice).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<ProductLocation>(entity =>
+        {
+            entity.ToTable("ProductLocations");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.ProductId, e.LocationId, e.EventYear }).IsUnique();
+
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Location)
+                .WithMany()
+                .HasForeignKey(e => e.LocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Event)
+                .WithMany()
+                .HasForeignKey(e => e.EventYear)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Inventory>(entity =>
@@ -270,6 +293,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         var inventories = Array.Empty<Inventory>();
 
         modelBuilder.Entity<Inventory>().HasData(inventories);
+
+        var productLocations = Array.Empty<ProductLocation>();
+
+        modelBuilder.Entity<ProductLocation>().HasData(productLocations);
 
         var brandingSettings = new Settings
         {

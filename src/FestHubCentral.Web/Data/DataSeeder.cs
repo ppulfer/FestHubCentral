@@ -36,6 +36,7 @@ public static class DataSeeder
 
         await SeedProducts(context, backupPath);
         await SeedInventoryTransfers(context, backupPath);
+        await SeedProductLocationForecasts(context, backupPath);
         await SeedInventories(context, backupPath);
 
         await context.SaveChangesAsync();
@@ -138,6 +139,61 @@ public static class DataSeeder
 
         await context.SaveChangesAsync();
         Console.WriteLine($"Imported {transfersJson.Count} inventory transfers");
+    }
+
+    private static async Task SeedProductLocationForecasts(ApplicationDbContext context, string backupPath)
+    {
+        var filePath = Path.Combine(backupPath, "ProductLocationForecasts.json");
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"ProductLocationForecasts.json not found");
+            return;
+        }
+
+        var json = await File.ReadAllTextAsync(filePath);
+        var forecastsJson = JsonSerializer.Deserialize<List<ProductLocationForecastJson>>(json, JsonOptions);
+
+        if (forecastsJson == null) return;
+
+        var validLocationIds = await context.Locations.Select(l => l.Id).ToListAsync();
+        int importedCount = 0;
+        int skippedCount = 0;
+
+        foreach (var forecastJson in forecastsJson)
+        {
+            if (!forecastJson.LocationId.HasValue ||
+                forecastJson.LocationId == 28 ||
+                !validLocationIds.Contains(forecastJson.LocationId.Value) ||
+                forecastJson.Amount <= 0)
+            {
+                skippedCount++;
+                continue;
+            }
+
+            var existingProductLocation = await context.ProductLocations
+                .FirstOrDefaultAsync(f => f.ProductId == forecastJson.ProductId
+                                      && f.LocationId == forecastJson.LocationId
+                                      && f.EventYear == 2024);
+
+            if (existingProductLocation != null) continue;
+
+            var productLocation = new ProductLocation
+            {
+                ProductId = forecastJson.ProductId,
+                LocationId = forecastJson.LocationId.Value,
+                PlannedAmount = forecastJson.Amount,
+                InitialDelivery = forecastJson.InitialDelivery,
+                Notes = forecastJson.Bemerkung,
+                EventYear = 2024,
+                CreatedAt = SeedDate
+            };
+
+            context.ProductLocations.Add(productLocation);
+            importedCount++;
+        }
+
+        await context.SaveChangesAsync();
+        Console.WriteLine($"Imported {importedCount} product locations (skipped {skippedCount} with invalid locations)");
     }
 
     private static async Task SeedInventories(ApplicationDbContext context, string backupPath)

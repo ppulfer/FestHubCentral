@@ -56,6 +56,19 @@ public class InventoryTransferService : IInventoryTransferService
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<InventoryTransfer>> GetTransfersByLocationAndYearAsync(int locationId, int eventYear)
+    {
+        return await _context.InventoryTransfers
+            .Include(t => t.Product)
+            .Include(t => t.FromLocation)
+            .Include(t => t.ToLocation)
+            .Include(t => t.CreatedByUser)
+            .Where(t => (t.FromLocationId == locationId || t.ToLocationId == locationId)
+                       && t.EventYear == eventYear)
+            .OrderByDescending(t => t.TransferDate)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<InventoryTransfer>> GetTransfersByDateRangeAsync(DateTime startDate, DateTime endDate)
     {
         var settings = await _settingsService.GetSettingsAsync();

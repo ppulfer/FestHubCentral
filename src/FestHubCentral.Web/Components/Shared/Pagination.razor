@@ -1,0 +1,72 @@
+@if (TotalPages > 1)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mb-0">
+            <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChanged(1)" disabled="@(CurrentPage == 1)">
+                    <i class="bi bi-chevron-double-left"></i>
+                </button>
+            </li>
+
+            <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChanged(CurrentPage - 1)" disabled="@(CurrentPage == 1)">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            </li>
+
+            @foreach (var pageNum in GetVisiblePages())
+            {
+                <li class="page-item @(pageNum == CurrentPage ? "active" : "")">
+                    <button class="page-link" @onclick="() => OnPageChanged(pageNum)">@pageNum</button>
+                </li>
+            }
+
+            <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChanged(CurrentPage + 1)" disabled="@(CurrentPage == TotalPages)">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </li>
+
+            <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChanged(TotalPages)" disabled="@(CurrentPage == TotalPages)">
+                    <i class="bi bi-chevron-double-right"></i>
+                </button>
+            </li>
+        </ul>
+
+        <div class="text-center text-muted small mt-2">
+            Page @CurrentPage of @TotalPages (@TotalItems total items)
+        </div>
+    </nav>
+}
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int TotalItems { get; set; }
+    [Parameter] public int PageSize { get; set; } = 30;
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+
+    private int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
+
+    private async Task OnPageChanged(int page)
+    {
+        if (page >= 1 && page <= TotalPages && page != CurrentPage)
+        {
+            await OnPageChange.InvokeAsync(page);
+        }
+    }
+
+    private IEnumerable<int> GetVisiblePages()
+    {
+        const int maxVisiblePages = 5;
+        var startPage = Math.Max(1, CurrentPage - maxVisiblePages / 2);
+        var endPage = Math.Min(TotalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages)
+        {
+            startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+        }
+
+        return Enumerable.Range(startPage, endPage - startPage + 1);
+    }
+}

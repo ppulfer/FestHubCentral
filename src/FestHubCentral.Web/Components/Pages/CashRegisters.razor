@@ -4,14 +4,15 @@
 @using FestHubCentral.Web.Components.Shared
 @inject ICashRegisterService CashRegisterService
 @inject ILocationService LocationService
+@inject IStringLocalizer<SharedResources> Localizer
 @rendermode InteractiveServer
 
-<PageTitle>Cash Registers - FestHub Central</PageTitle>
+<PageTitle>@Localizer["Nav.CashRegisters"].Value</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1>💰 Cash Register Management</h1>
+            <h1>💰 @Localizer["Nav.CashRegisters"].Value</h1>
             <p class="text-muted">Daily cash register operations and reconciliation</p>
         </div>
         <div class="col-auto">

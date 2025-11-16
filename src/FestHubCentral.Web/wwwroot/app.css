@@ -332,3 +332,35 @@ h1:focus {
     padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--festival-blue);
 }
+
+/* Sidebar Collapse Animations */
+.sidebar {
+    overflow: hidden;
+}
+
+.page.sidebar-collapsed .nav-item .nav-link {
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+}
+
+.page.sidebar-collapsed .nav-item .nav-link .bi {
+    margin-right: 0;
+    font-size: 1.25rem;
+}
+
+.page.sidebar-collapsed .navbar-brand {
+    justify-content: center;
+}
+
+.page.sidebar-collapsed .sidebar-toggle-btn {
+    justify-content: center;
+    padding: 0;
+}
+
+.page.sidebar-collapsed .sidebar-toggle-btn .toggle-text {
+    display: none;
+}
+
+.page.sidebar-collapsed .sidebar-toggle-btn i {
+    margin: 0;
+}

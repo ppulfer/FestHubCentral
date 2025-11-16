@@ -4,83 +4,143 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="" title="@(Settings?.FestivalName ?? "FestHub Central")">
             @if (!string.IsNullOrEmpty(Settings?.LogoPath))
             {
-                <img src="@Settings.LogoPath" alt="Logo" style="height: 32px; width: auto;" />
+                <img src="@Settings.LogoPath" alt="Logo" class="brand-logo" />
             }
             else
             {
-                <span>🎪</span>
+                <span class="brand-icon">🎪</span>
             }
-            <span>@(Settings?.FestivalName ?? "FestHub Central") @(Settings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</span>
+            @if (!IsCollapsed)
+            {
+                <span class="brand-text">@(Settings?.FestivalName ?? "FestHub Central") @(Settings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</span>
+            }
         </a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> @Localizer["Nav.Dashboard"]
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Dashboard">
+                <i class="bi bi-speedometer2"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.Dashboard"]</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="locations">
-                <span class="bi bi-shop-nav-menu" aria-hidden="true"></span> @Localizer["Nav.Vendors"]
+            <NavLink class="nav-link" href="locations" title="Locations">
+                <i class="bi bi-geo-alt-fill"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.Vendors"]</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="inventory">
-                <span class="bi bi-box-seam-nav-menu" aria-hidden="true"></span> @Localizer["Nav.Inventory"].Value
+            <NavLink class="nav-link" href="inventory" title="Inventory">
+                <i class="bi bi-box-seam"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.Inventory"].Value</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="inventory-transfers">
-                <span class="bi bi-arrow-left-right-nav-menu" aria-hidden="true"></span> @Localizer["Nav.InventoryTransfers"].Value
+            <NavLink class="nav-link" href="inventory-transfers" title="Inventory Transfers">
+                <i class="bi bi-arrow-left-right"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.InventoryTransfers"].Value</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="orders">
-                <span class="bi bi-receipt-nav-menu" aria-hidden="true"></span> @Localizer["Nav.Orders"].Value
+            <NavLink class="nav-link" href="orders" title="Orders">
+                <i class="bi bi-receipt"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.Orders"].Value</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="cash-registers">
-                <span class="bi bi-cash-coin-nav-menu" aria-hidden="true"></span> @Localizer["Nav.CashRegisters"].Value
+            <NavLink class="nav-link" href="cash-registers" title="Cash Registers">
+                <i class="bi bi-cash-coin"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.CashRegisters"].Value</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="alerts">
-                <span class="bi bi-exclamation-triangle-nav-menu" aria-hidden="true"></span> @Localizer["Nav.Alerts"].Value
+            <NavLink class="nav-link" href="alerts" title="Alerts">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.Alerts"].Value</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="settings">
-                <span class="bi bi-gear-nav-menu" aria-hidden="true"></span> @Localizer["Nav.Settings"].Value
+            <NavLink class="nav-link" href="settings" title="Settings">
+                <i class="bi bi-gear-fill"></i>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">@Localizer["Nav.Settings"].Value</span>
+                }
             </NavLink>
         </div>
 
         <AuthorizeView Roles="Admin">
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="account/register">
-                    <span class="bi bi-person-plus-nav-menu" aria-hidden="true"></span> Register User
+                <NavLink class="nav-link" href="account/register" title="Register User">
+                    <i class="bi bi-person-plus-fill"></i>
+                    @if (!IsCollapsed)
+                    {
+                        <span class="nav-text">Register User</span>
+                    }
                 </NavLink>
             </div>
         </AuthorizeView>
     </nav>
+
+    <div class="sidebar-bottom">
+        <button class="sidebar-toggle-btn" @onclick="HandleToggleSidebar" title="Toggle Sidebar">
+            <i class="bi bi-list"></i>
+            @if (!IsCollapsed)
+            {
+                <span class="toggle-text">Collapse</span>
+            }
+        </button>
+    </div>
 </div>
 
 @code {
     [Parameter]
     public Settings? Settings { get; set; }
+
+    [Parameter]
+    public bool IsCollapsed { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggleSidebar { get; set; }
+
+    private async Task HandleToggleSidebar()
+    {
+        await OnToggleSidebar.InvokeAsync();
+    }
 }

@@ -64,10 +64,13 @@
     <value>Dashboard</value>
   </data>
   <data name="Nav.Vendors" xml:space="preserve">
-    <value>Vendors</value>
+    <value>Locations</value>
   </data>
   <data name="Nav.Inventory" xml:space="preserve">
     <value>Inventory</value>
+  </data>
+  <data name="Nav.InventoryTransfers" xml:space="preserve">
+    <value>Transfers</value>
   </data>
   <data name="Nav.Orders" xml:space="preserve">
     <value>Orders</value>
@@ -95,11 +98,11 @@
   <data name="Dashboard.Orders" xml:space="preserve">
     <value>orders</value>
   </data>
-  <data name="Dashboard.VendorsOpen" xml:space="preserve">
-    <value>Vendors Open</value>
+  <data name="Dashboard.LocationsOpen" xml:space="preserve">
+    <value>Locations Open</value>
   </data>
-  <data name="Dashboard.TotalVendors" xml:space="preserve">
-    <value>total vendors</value>
+  <data name="Dashboard.TotalLocations" xml:space="preserve">
+    <value>total locations</value>
   </data>
   <data name="Dashboard.LowStockItems" xml:space="preserve">
     <value>Low Stock Items</value>
@@ -157,6 +160,12 @@
   <data name="Settings.FestivalNamePlaceholder" xml:space="preserve">
     <value>e.g., Wümmetfest Höngg</value>
   </data>
+  <data name="Settings.FestivalYear" xml:space="preserve">
+    <value>Festival Year</value>
+  </data>
+  <data name="Settings.FestivalYearHelp" xml:space="preserve">
+    <value>The year of the upcoming festival event</value>
+  </data>
   <data name="Settings.Tagline" xml:space="preserve">
     <value>Tagline</value>
   </data>
@@ -207,6 +216,89 @@
   </data>
   <data name="Settings.LanguageDescription" xml:space="preserve">
     <value>Choose your preferred language</value>
+  </data>
+
+  <!-- Inventory Transfers -->
+  <data name="InventoryTransfers" xml:space="preserve">
+    <value>Inventory Transfers</value>
+  </data>
+  <data name="NewTransfer" xml:space="preserve">
+    <value>New Transfer</value>
+  </data>
+  <data name="TotalTransfers" xml:space="preserve">
+    <value>Total Transfers</value>
+  </data>
+  <data name="TodaysTransfers" xml:space="preserve">
+    <value>Today's Transfers</value>
+  </data>
+  <data name="WarehouseToVendor" xml:space="preserve">
+    <value>Warehouse to Location</value>
+  </data>
+  <data name="VendorToVendor" xml:space="preserve">
+    <value>Location to Location</value>
+  </data>
+  <data name="VendorToWarehouse" xml:space="preserve">
+    <value>Location to Warehouse</value>
+  </data>
+  <data name="Filters" xml:space="preserve">
+    <value>Filters</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="Vendor" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="AllVendors" xml:space="preserve">
+    <value>All Locations</value>
+  </data>
+  <data name="TransferType" xml:space="preserve">
+    <value>Transfer Type</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>All Types</value>
+  </data>
+  <data name="TransferHistory" xml:space="preserve">
+    <value>Transfer History</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="CreatedBy" xml:space="preserve">
+    <value>Created By</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Warehouse</value>
+  </data>
+  <data name="NoTransfersFound" xml:space="preserve">
+    <value>No transfers found</value>
+  </data>
+  <data name="SelectProduct" xml:space="preserve">
+    <value>Select Product</value>
+  </data>
+  <data name="CreateTransfer" xml:space="preserve">
+    <value>Create Transfer</value>
   </data>
 
   <!-- Common -->

@@ -7,6 +7,7 @@ public interface IInventoryTransferService
     Task<IEnumerable<InventoryTransfer>> GetAllTransfersAsync();
     Task<IEnumerable<InventoryTransfer>> GetTransfersByProductAsync(int productId);
     Task<IEnumerable<InventoryTransfer>> GetTransfersByLocationAsync(int locationId);
+    Task<IEnumerable<InventoryTransfer>> GetTransfersByLocationAndYearAsync(int locationId, int eventYear);
     Task<IEnumerable<InventoryTransfer>> GetTransfersByDateRangeAsync(DateTime startDate, DateTime endDate);
     Task<InventoryTransfer?> GetTransferByIdAsync(int id);
     Task<InventoryTransfer> CreateTransferAsync(InventoryTransfer transfer);

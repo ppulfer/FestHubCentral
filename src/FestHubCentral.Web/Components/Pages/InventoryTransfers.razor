@@ -1,21 +1,22 @@
 @page "/inventory-transfers"
 @using FestHubCentral.Web.Data.Models
 @using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Components.Shared
 @inject IInventoryTransferService TransferService
 @inject ILocationService LocationService
 @inject IInventoryService InventoryService
 @inject ISettingsService SettingsService
-@inject IStringLocalizer<InventoryTransfers> Localizer
+@inject IStringLocalizer<SharedResources> Localizer
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>@Localizer["InventoryTransfers"]</PageTitle>
+<PageTitle>@Localizer["Nav.InventoryTransfers"].Value</PageTitle>
 
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0">@Localizer["InventoryTransfers"]</h2>
+                <h2 class="mb-0">@Localizer["Nav.InventoryTransfers"].Value</h2>
                 <button class="btn btn-primary" @onclick="ShowNewTransferForm">
                     <i class="bi bi-plus-circle me-2"></i>@Localizer["NewTransfer"]
                 </button>
@@ -120,7 +121,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var transfer in filteredTransfers)
+                            @foreach (var transfer in GetPagedTransfers())
                             {
                                 <tr>
                                     <td>@transfer.TransferDate.ToLocalTime().ToString("g")</td>
@@ -157,6 +158,13 @@
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <div class="mt-3">
+                    <Pagination CurrentPage="@currentPage"
+                                TotalItems="@filteredTransfers.Count"
+                                PageSize="@pageSize"
+                                OnPageChange="@HandlePageChange" />
                 </div>
             }
             else
@@ -263,6 +271,9 @@
     private bool showNewTransferForm = false;
     private InventoryTransfer newTransfer = new();
 
+    private int currentPage = 1;
+    private const int pageSize = 30;
+
     protected override async Task OnInitializedAsync()
     {
         await InitializeFilterDates();
@@ -321,6 +332,8 @@
             "vendor-to-warehouse" => filteredTransfers.Where(t => t.FromLocationId != null && t.ToLocationId == null).ToList(),
             _ => filteredTransfers
         };
+
+        currentPage = 1;
     }
 
     private void ShowNewTransferForm()
@@ -348,5 +361,18 @@
         {
             await LoadData();
         }
+    }
+
+    private IEnumerable<InventoryTransfer> GetPagedTransfers()
+    {
+        return filteredTransfers
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize);
+    }
+
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        await InvokeAsync(StateHasChanged);
     }
 }

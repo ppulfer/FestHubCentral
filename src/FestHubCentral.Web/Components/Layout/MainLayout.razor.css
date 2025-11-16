@@ -11,13 +11,14 @@ main {
 .sidebar {
     background: linear-gradient(180deg, #f8fafb 0%, #ffffff 100%);
     border-right: 1px solid #e1e8ed;
+    transition: width 0.3s ease;
 }
 
 .top-row {
     background-color: #ffffff;
     border-bottom: 1px solid #e1e8ed;
-    justify-content: flex-end;
-    height: 3.5rem;
+    justify-content: space-between;
+    height: 4rem;
     display: flex;
     align-items: center;
 }
@@ -68,10 +69,14 @@ main {
     }
 
     .sidebar {
-        width: 250px;
+        width: 300px;
         height: 100vh;
         position: sticky;
         top: 0;
+    }
+
+    .page.sidebar-collapsed .sidebar {
+        width: 80px;
     }
 
     .top-row {

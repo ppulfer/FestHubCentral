@@ -3,6 +3,7 @@ using System;
 using FestHubCentral.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FestHubCentral.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251116130701_RemoveZeroAmountForecasts")]
+    partial class RemoveZeroAmountForecasts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -637,9 +640,6 @@ namespace FestHubCentral.Web.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("CanRestock")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -715,13 +715,16 @@ namespace FestHubCentral.Web.Migrations
                     b.ToTable("ProductEventPrices");
                 });
 
-            modelBuilder.Entity("FestHubCentral.Web.Data.Models.ProductLocation", b =>
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.ProductLocationForecast", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -739,9 +742,6 @@ namespace FestHubCentral.Web.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<int>("PlannedAmount")
-                        .HasColumnType("integer");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
@@ -757,7 +757,7 @@ namespace FestHubCentral.Web.Migrations
                     b.HasIndex("ProductId", "LocationId", "EventYear")
                         .IsUnique();
 
-                    b.ToTable("ProductLocations", (string)null);
+                    b.ToTable("ProductLocationForecasts");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Settings", b =>
@@ -1215,7 +1215,7 @@ namespace FestHubCentral.Web.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("FestHubCentral.Web.Data.Models.ProductLocation", b =>
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.ProductLocationForecast", b =>
                 {
                     b.HasOne("FestHubCentral.Web.Data.Models.Event", "Event")
                         .WithMany()

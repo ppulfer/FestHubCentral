@@ -5,14 +5,15 @@
 @inject IOrderService OrderService
 @inject ILocationService LocationService
 @inject IInventoryService InventoryService
+@inject IStringLocalizer<SharedResources> Localizer
 @rendermode InteractiveServer
 
-<PageTitle>Orders - FestHub Central</PageTitle>
+<PageTitle>@Localizer["Nav.Orders"].Value</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1>🧾 Order Management</h1>
+            <h1>🧾 @Localizer["Nav.Orders"].Value</h1>
             <p class="text-muted">Process sales and view order history</p>
         </div>
         <div class="col-auto">
@@ -177,7 +178,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var order in filteredOrders.Take(50))
+                    @foreach (var order in GetPagedOrders())
                     {
                         <tr>
                             <td><strong>@order.OrderNumber</strong></td>
@@ -190,6 +191,13 @@
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="mt-3">
+            <Pagination CurrentPage="@currentPage"
+                        TotalItems="@filteredOrders.Count"
+                        PageSize="@pageSize"
+                        OnPageChange="@HandlePageChange" />
         </div>
     </div>
 </div>
@@ -213,6 +221,9 @@
 
     private DateTime filterStartDate = DateTime.UtcNow.Date;
     private DateTime filterEndDate = DateTime.UtcNow.Date;
+
+    private int currentPage = 1;
+    private const int pageSize = 30;
 
     protected override async Task OnInitializedAsync()
     {
@@ -325,10 +336,25 @@
             var locationId = int.Parse(locationIdStr);
             filteredOrders = allOrders.Where(o => o.LocationId == locationId).ToList();
         }
+        currentPage = 1;
     }
 
     private async Task ApplyDateFilter()
     {
         filteredOrders = (await OrderService.GetOrdersByDateRangeAsync(filterStartDate, filterEndDate.AddDays(1))).ToList();
+        currentPage = 1;
+    }
+
+    private IEnumerable<Order> GetPagedOrders()
+    {
+        return filteredOrders
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize);
+    }
+
+    private async Task HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        await InvokeAsync(StateHasChanged);
     }
 }

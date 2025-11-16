@@ -10,14 +10,13 @@
         <Authorized>
             @if (brandingSettings != null)
             {
-                <div class="page" style="--brand-primary: @brandingSettings.PrimaryColor; --brand-secondary: @brandingSettings.SecondaryColor; --brand-accent: @brandingSettings.AccentColor;">
+                <div class="page @(sidebarCollapsed ? "sidebar-collapsed" : "")" style="--brand-primary: @brandingSettings.PrimaryColor; --brand-secondary: @brandingSettings.SecondaryColor; --brand-accent: @brandingSettings.AccentColor;">
                     <div class="sidebar">
-                        <NavMenu Settings="@brandingSettings" />
+                        <NavMenu Settings="@brandingSettings" IsCollapsed="@sidebarCollapsed" OnToggleSidebar="@ToggleSidebar" />
                     </div>
 
                     <main>
-                        <div class="top-row px-4 d-flex justify-content-between align-items-center">
-                            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                        <div class="top-row px-4 d-flex justify-content-end align-items-center">
                             <div class="user-menu">
                                 <span class="user-name">@context.User.Identity?.Name</span>
                                 <a href="/account/logout" class="btn btn-sm btn-outline-secondary">Logout</a>
@@ -51,9 +50,15 @@
 
 @code {
     private Data.Models.Settings? brandingSettings;
+    private bool sidebarCollapsed = false;
 
     protected override async Task OnInitializedAsync()
     {
         brandingSettings = await SettingsService.GetSettingsAsync();
+    }
+
+    private void ToggleSidebar()
+    {
+        sidebarCollapsed = !sidebarCollapsed;
     }
 }

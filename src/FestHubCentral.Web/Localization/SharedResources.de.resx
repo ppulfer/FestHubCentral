@@ -64,10 +64,13 @@
     <value>Dashboard</value>
   </data>
   <data name="Nav.Vendors" xml:space="preserve">
-    <value>Verkäufer</value>
+    <value>Standorte</value>
   </data>
   <data name="Nav.Inventory" xml:space="preserve">
     <value>Inventar</value>
+  </data>
+  <data name="Nav.InventoryTransfers" xml:space="preserve">
+    <value>Transfers</value>
   </data>
   <data name="Nav.Orders" xml:space="preserve">
     <value>Bestellungen</value>
@@ -95,11 +98,11 @@
   <data name="Dashboard.Orders" xml:space="preserve">
     <value>Bestellungen</value>
   </data>
-  <data name="Dashboard.VendorsOpen" xml:space="preserve">
-    <value>Geöffnete Verkäufer</value>
+  <data name="Dashboard.LocationsOpen" xml:space="preserve">
+    <value>Geöffnete Standorte</value>
   </data>
-  <data name="Dashboard.TotalVendors" xml:space="preserve">
-    <value>Verkäufer gesamt</value>
+  <data name="Dashboard.TotalLocations" xml:space="preserve">
+    <value>Standorte gesamt</value>
   </data>
   <data name="Dashboard.LowStockItems" xml:space="preserve">
     <value>Artikel mit niedrigem Bestand</value>
@@ -157,6 +160,12 @@
   <data name="Settings.FestivalNamePlaceholder" xml:space="preserve">
     <value>z.B. Wümmetfest Höngg</value>
   </data>
+  <data name="Settings.FestivalYear" xml:space="preserve">
+    <value>Festival-Jahr</value>
+  </data>
+  <data name="Settings.FestivalYearHelp" xml:space="preserve">
+    <value>Das Jahr der nächsten Festival-Veranstaltung</value>
+  </data>
   <data name="Settings.Tagline" xml:space="preserve">
     <value>Slogan</value>
   </data>
@@ -207,6 +216,89 @@
   </data>
   <data name="Settings.LanguageDescription" xml:space="preserve">
     <value>Wählen Sie Ihre bevorzugte Sprache</value>
+  </data>
+
+  <!-- Inventory Transfers -->
+  <data name="InventoryTransfers" xml:space="preserve">
+    <value>Inventar Transfers</value>
+  </data>
+  <data name="NewTransfer" xml:space="preserve">
+    <value>Neuer Transfer</value>
+  </data>
+  <data name="TotalTransfers" xml:space="preserve">
+    <value>Transfers gesamt</value>
+  </data>
+  <data name="TodaysTransfers" xml:space="preserve">
+    <value>Heutige Transfers</value>
+  </data>
+  <data name="WarehouseToVendor" xml:space="preserve">
+    <value>Lager zu Standort</value>
+  </data>
+  <data name="VendorToVendor" xml:space="preserve">
+    <value>Standort zu Standort</value>
+  </data>
+  <data name="VendorToWarehouse" xml:space="preserve">
+    <value>Standort zu Lager</value>
+  </data>
+  <data name="Filters" xml:space="preserve">
+    <value>Filter</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Startdatum</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Enddatum</value>
+  </data>
+  <data name="Vendor" xml:space="preserve">
+    <value>Standort</value>
+  </data>
+  <data name="AllVendors" xml:space="preserve">
+    <value>Alle Standorte</value>
+  </data>
+  <data name="TransferType" xml:space="preserve">
+    <value>Transfer-Typ</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>Alle Typen</value>
+  </data>
+  <data name="TransferHistory" xml:space="preserve">
+    <value>Transfer-Verlauf</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Produkt</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>Nach</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Menge</value>
+  </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Kommentar</value>
+  </data>
+  <data name="CreatedBy" xml:space="preserve">
+    <value>Erstellt von</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Lager</value>
+  </data>
+  <data name="NoTransfersFound" xml:space="preserve">
+    <value>Keine Transfers gefunden</value>
+  </data>
+  <data name="SelectProduct" xml:space="preserve">
+    <value>Produkt auswählen</value>
+  </data>
+  <data name="CreateTransfer" xml:space="preserve">
+    <value>Transfer erstellen</value>
   </data>
 
   <!-- Common -->

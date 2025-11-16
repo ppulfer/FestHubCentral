@@ -19,6 +19,8 @@ public class Product
 
     public bool IsAvailable { get; set; } = true;
 
+    public bool CanRestock { get; set; } = true;
+
     [Required]
     public int SupplierId { get; set; }
     public Supplier Supplier { get; set; } = null!;
