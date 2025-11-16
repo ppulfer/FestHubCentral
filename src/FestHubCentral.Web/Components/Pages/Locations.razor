@@ -1,22 +1,22 @@
-@page "/vendors"
+@page "/locations"
 @using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Data.Models
 @using FestHubCentral.Web.Components.Shared
-@inject IVendorService VendorService
+@inject ILocationService LocationService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Vendors - FestHub Central</PageTitle>
+<PageTitle>Locations - FestHub Central</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1>🏪 Vendor Management</h1>
-            <p class="text-muted">Manage festival food and beverage vendors</p>
+            <h1>🏪 Location Management</h1>
+            <p class="text-muted">Manage festival food and beverage locations</p>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary" @onclick="ShowAddVendorForm">
-                Add New Vendor
+            <button class="btn btn-primary" @onclick="ShowAddLocationForm">
+                Add New Location
             </button>
         </div>
     </div>
@@ -24,22 +24,22 @@
     @if (showForm)
     {
         <div class="section-card mb-4">
-            <h3>@(editingVendor?.Id > 0 ? "Edit Vendor" : "Add New Vendor")</h3>
-            <EditForm Model="@editingVendor" OnValidSubmit="SaveVendor">
+            <h3>@(editingLocation?.Id > 0 ? "Edit Location" : "Add New Location")</h3>
+            <EditForm Model="@editingLocation" OnValidSubmit="SaveLocation">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">Vendor Name</label>
-                            <InputText class="form-control" @bind-Value="editingVendor!.Name" />
+                            <label class="form-label">Location Name</label>
+                            <InputText class="form-control" @bind-Value="editingLocation!.Name" />
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Category</label>
-                            <InputSelect class="form-control" @bind-Value="editingVendor!.Category">
+                            <InputSelect class="form-control" @bind-Value="editingLocation!.Category">
                                 <option value="Food">Food</option>
                                 <option value="Beverage">Beverage</option>
                                 <option value="Mixed">Mixed</option>
@@ -49,7 +49,7 @@
                     <div class="col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Location Spot (1-15)</label>
-                            <InputNumber class="form-control" @bind-Value="editingVendor!.LocationSpot" />
+                            <InputNumber class="form-control" @bind-Value="editingLocation!.LocationSpot" />
                         </div>
                     </div>
                 </div>
@@ -58,19 +58,19 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label class="form-label">Contact Person</label>
-                            <InputText class="form-control" @bind-Value="editingVendor!.ContactPerson" />
+                            <InputText class="form-control" @bind-Value="editingLocation!.ContactPerson" />
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label class="form-label">Contact Phone</label>
-                            <InputText class="form-control" @bind-Value="editingVendor!.ContactPhone" />
+                            <InputText class="form-control" @bind-Value="editingLocation!.ContactPhone" />
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label class="form-label">Contact Email</label>
-                            <InputText class="form-control" @bind-Value="editingVendor!.ContactEmail" />
+                            <InputText class="form-control" @bind-Value="editingLocation!.ContactEmail" />
                         </div>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
     }
 
     <div class="section-card">
-        <h3 class="section-title">All Vendors</h3>
+        <h3 class="section-title">All Locations</h3>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -97,17 +97,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var vendor in vendors)
+                    @foreach (var location in locations)
                     {
                         <tr>
-                            <td><strong>@vendor.LocationSpot</strong></td>
-                            <td>@vendor.Name</td>
-                            <td><span class="badge bg-info">@vendor.Category</span></td>
+                            <td><strong>@location.LocationSpot</strong></td>
+                            <td>@location.Name</td>
+                            <td><span class="badge bg-info">@location.Category</span></td>
                             <td>
-                                @if (!string.IsNullOrEmpty(vendor.ContactPerson))
+                                @if (!string.IsNullOrEmpty(location.ContactPerson))
                                 {
-                                    <div>@vendor.ContactPerson</div>
-                                    <small class="text-muted">@vendor.ContactPhone</small>
+                                    <div>@location.ContactPerson</div>
+                                    <small class="text-muted">@location.ContactPhone</small>
                                 }
                                 else
                                 {
@@ -116,13 +116,13 @@
                             </td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditVendor(vendor)">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditLocation(location)">
                                         Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ViewVendor(vendor.Id)">
+                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ViewLocation(location.Id)">
                                         View
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteVendor(vendor.Id)">
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteLocation(location.Id)">
                                         Delete
                                     </button>
                                 </div>
@@ -136,75 +136,75 @@
 </div>
 
 @code {
-    private List<Vendor> vendors = new();
-    private Vendor? editingVendor;
+    private List<Location> locations = new();
+    private Location? editingLocation;
     private bool showForm = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadVendors();
+        await LoadLocations();
     }
 
-    private async Task LoadVendors()
+    private async Task LoadLocations()
     {
-        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+        locations = (await LocationService.GetAllLocationsAsync()).ToList();
     }
 
-    private void ShowAddVendorForm()
+    private void ShowAddLocationForm()
     {
-        editingVendor = new Vendor { Category = "Food" };
+        editingLocation = new Location { Category = "Food" };
         showForm = true;
     }
 
-    private void EditVendor(Vendor vendor)
+    private void EditLocation(Location location)
     {
-        editingVendor = new Vendor
+        editingLocation = new Location
             {
-                Id = vendor.Id,
-                Name = vendor.Name,
-                Category = vendor.Category,
-                LocationSpot = vendor.LocationSpot,
-                ContactPerson = vendor.ContactPerson,
-                ContactPhone = vendor.ContactPhone,
-                ContactEmail = vendor.ContactEmail
+                Id = location.Id,
+                Name = location.Name,
+                Category = location.Category,
+                LocationSpot = location.LocationSpot,
+                ContactPerson = location.ContactPerson,
+                ContactPhone = location.ContactPhone,
+                ContactEmail = location.ContactEmail
             };
         showForm = true;
     }
 
     private void CancelEdit()
     {
-        editingVendor = null;
+        editingLocation = null;
         showForm = false;
     }
 
-    private async Task SaveVendor()
+    private async Task SaveLocation()
     {
-        if (editingVendor == null) return;
+        if (editingLocation == null) return;
 
-        if (editingVendor.Id == 0)
+        if (editingLocation.Id == 0)
         {
-            await VendorService.CreateVendorAsync(editingVendor);
+            await LocationService.CreateLocationAsync(editingLocation);
         }
         else
         {
-            await VendorService.UpdateVendorAsync(editingVendor);
+            await LocationService.UpdateLocationAsync(editingLocation);
         }
 
-        await LoadVendors();
+        await LoadLocations();
         CancelEdit();
     }
 
-    private void ViewVendor(int vendorId)
+    private void ViewLocation(int locationId)
     {
-        Navigation.NavigateTo($"/vendors/{vendorId}");
+        Navigation.NavigateTo($"/locations/{locationId}");
     }
 
-    private async Task DeleteVendor(int vendorId)
+    private async Task DeleteLocation(int locationId)
     {
-        if (confirm("Are you sure you want to delete this vendor?"))
+        if (confirm("Are you sure you want to delete this location?"))
         {
-            await VendorService.DeleteVendorAsync(vendorId);
-            await LoadVendors();
+            await LocationService.DeleteLocationAsync(locationId);
+            await LoadLocations();
         }
     }
 

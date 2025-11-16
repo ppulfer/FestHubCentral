@@ -17,7 +17,7 @@ public class CashRegisterService : ICashRegisterService
     public async Task<IEnumerable<CashRegister>> GetAllCashRegistersAsync()
     {
         return await _context.CashRegisters
-            .Include(cr => cr.Vendor)
+            .Include(cr => cr.Location)
             .OrderByDescending(cr => cr.OpenedAt)
             .ToListAsync();
     }
@@ -25,7 +25,7 @@ public class CashRegisterService : ICashRegisterService
     public async Task<IEnumerable<CashRegister>> GetOpenCashRegistersAsync()
     {
         return await _context.CashRegisters
-            .Include(cr => cr.Vendor)
+            .Include(cr => cr.Location)
             .Where(cr => cr.IsOpen)
             .ToListAsync();
     }
@@ -33,14 +33,14 @@ public class CashRegisterService : ICashRegisterService
     public async Task<CashRegister?> GetCashRegisterByIdAsync(int id)
     {
         return await _context.CashRegisters
-            .Include(cr => cr.Vendor)
+            .Include(cr => cr.Location)
             .FirstOrDefaultAsync(cr => cr.Id == id);
     }
 
-    public async Task<CashRegister?> GetOpenCashRegisterByVendorAsync(int vendorId)
+    public async Task<CashRegister?> GetOpenCashRegisterByLocationAsync(int locationId)
     {
         return await _context.CashRegisters
-            .Where(cr => cr.VendorId == vendorId && cr.IsOpen)
+            .Where(cr => cr.LocationId == locationId && cr.IsOpen)
             .FirstOrDefaultAsync();
     }
 
@@ -78,7 +78,7 @@ public class CashRegisterService : ICashRegisterService
         if (cashRegister == null) return 0;
 
         var orders = await _context.Orders
-            .Where(o => o.VendorId == cashRegister.VendorId
+            .Where(o => o.LocationId == cashRegister.LocationId
                 && o.OrderDate >= cashRegister.OpenedAt
                 && (!cashRegister.ClosedAt.HasValue || o.OrderDate <= cashRegister.ClosedAt.Value))
             .ToListAsync();

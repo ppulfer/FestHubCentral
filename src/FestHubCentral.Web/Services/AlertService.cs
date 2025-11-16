@@ -17,7 +17,7 @@ public class AlertService : IAlertService
     public async Task<IEnumerable<Alert>> GetAllAlertsAsync()
     {
         return await _context.Alerts
-            .Include(a => a.Vendor)
+            .Include(a => a.Location)
             .Include(a => a.Product)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
@@ -26,18 +26,18 @@ public class AlertService : IAlertService
     public async Task<IEnumerable<Alert>> GetUnresolvedAlertsAsync()
     {
         return await _context.Alerts
-            .Include(a => a.Vendor)
+            .Include(a => a.Location)
             .Include(a => a.Product)
             .Where(a => !a.IsResolved)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Alert>> GetAlertsByVendorAsync(int vendorId)
+    public async Task<IEnumerable<Alert>> GetAlertsByLocationAsync(int locationId)
     {
         return await _context.Alerts
             .Include(a => a.Product)
-            .Where(a => a.VendorId == vendorId)
+            .Where(a => a.LocationId == locationId)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }
@@ -45,7 +45,7 @@ public class AlertService : IAlertService
     public async Task<Alert?> GetAlertByIdAsync(int id)
     {
         return await _context.Alerts
-            .Include(a => a.Vendor)
+            .Include(a => a.Location)
             .Include(a => a.Product)
             .FirstOrDefaultAsync(a => a.Id == id);
     }

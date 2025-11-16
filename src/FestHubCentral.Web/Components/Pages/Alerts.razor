@@ -78,7 +78,7 @@
     {
         allAlerts = (await AlertService.GetAllAlertsAsync()).ToList();
         unresolvedAlerts = allAlerts.Where(a => !a.IsResolved).ToList();
-        resolvedAlerts = allAlerts.Where(a => a.IsResolved && a.ResolvedAt?.Date == DateTime.Today).ToList();
+        resolvedAlerts = allAlerts.Where(a => a.IsResolved && a.ResolvedAt?.Date == DateTime.UtcNow.Date).ToList();
 
         displayedAlerts = filterResolved ? resolvedAlerts : unresolvedAlerts;
 

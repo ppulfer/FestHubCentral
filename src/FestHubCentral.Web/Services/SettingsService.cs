@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FestHubCentral.Web.Services;
 
-public class BrandingService : IBrandingService
+public class SettingsService : ISettingsService
 {
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _environment;
@@ -13,7 +13,7 @@ public class BrandingService : IBrandingService
     private static Settings? _cachedSettings;
     private static DateTime _cacheExpiration = DateTime.MinValue;
 
-    public BrandingService(ApplicationDbContext context, IWebHostEnvironment environment)
+    public SettingsService(ApplicationDbContext context, IWebHostEnvironment environment)
     {
         _context = context;
         _environment = environment;
@@ -34,7 +34,10 @@ public class BrandingService : IBrandingService
                 return _cachedSettings;
             }
 
-            var settings = await _context.Settings.AsNoTracking().FirstOrDefaultAsync();
+            var settings = await _context.Settings
+                .Include(s => s.UpcomingEvent)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
             if (settings == null)
             {

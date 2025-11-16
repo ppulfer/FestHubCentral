@@ -1,7 +1,7 @@
 ﻿@using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Data.Models
 @using Microsoft.AspNetCore.Components.Authorization
-@inject IBrandingService BrandingService
+@inject ISettingsService SettingsService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inherits LayoutComponentBase
 
@@ -54,6 +54,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        brandingSettings = await BrandingService.GetSettingsAsync();
+        brandingSettings = await SettingsService.GetSettingsAsync();
     }
 }

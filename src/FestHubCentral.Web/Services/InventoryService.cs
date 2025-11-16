@@ -9,18 +9,18 @@ public class InventoryService : IInventoryService
 {
     private readonly ApplicationDbContext _context;
     private readonly IAlertService _alertService;
-    private readonly IBrandingService _brandingService;
+    private readonly ISettingsService _settingsService;
 
-    public InventoryService(ApplicationDbContext context, IAlertService alertService, IBrandingService brandingService)
+    public InventoryService(ApplicationDbContext context, IAlertService alertService, ISettingsService settingsService)
     {
         _context = context;
         _alertService = alertService;
-        _brandingService = brandingService;
+        _settingsService = settingsService;
     }
 
     public async Task<IEnumerable<Inventory>> GetAllInventoryAsync()
     {
-        var settings = await _brandingService.GetSettingsAsync();
+        var settings = await _settingsService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
                 .ThenInclude(p => p.Supplier)
@@ -30,7 +30,7 @@ public class InventoryService : IInventoryService
 
     public async Task<IEnumerable<Inventory>> GetLowStockItemsAsync()
     {
-        var settings = await _brandingService.GetSettingsAsync();
+        var settings = await _settingsService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
                 .ThenInclude(p => p.Supplier)
@@ -40,7 +40,7 @@ public class InventoryService : IInventoryService
 
     public async Task<Inventory?> GetInventoryByProductIdAsync(int productId)
     {
-        var settings = await _brandingService.GetSettingsAsync();
+        var settings = await _settingsService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
             .Where(i => i.EventYear == settings.UpcomingEventYear)
@@ -49,7 +49,7 @@ public class InventoryService : IInventoryService
 
     public async Task<Inventory> CreateInventoryAsync(Inventory inventory)
     {
-        var settings = await _brandingService.GetSettingsAsync();
+        var settings = await _settingsService.GetSettingsAsync();
         inventory.EventYear = settings.UpcomingEventYear;
         inventory.CreatedAt = DateTime.UtcNow;
         inventory.LastRestocked = DateTime.UtcNow;

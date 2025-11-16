@@ -22,8 +22,8 @@ public class Alert
     [MaxLength(1000)]
     public string Message { get; set; } = string.Empty;
 
-    public int? VendorId { get; set; }
-    public Vendor? Vendor { get; set; }
+    public int? LocationId { get; set; }
+    public Location? Location { get; set; }
 
     public int? ProductId { get; set; }
     public Product? Product { get; set; }

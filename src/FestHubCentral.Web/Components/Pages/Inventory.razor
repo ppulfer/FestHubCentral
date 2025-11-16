@@ -3,7 +3,7 @@
 @using FestHubCentral.Web.Data.Models
 @using FestHubCentral.Web.Components.Shared
 @inject IInventoryService InventoryService
-@inject IVendorService VendorService
+@inject ILocationService LocationService
 @rendermode InteractiveServer
 
 <PageTitle>Inventory - FestHub Central</PageTitle>
@@ -12,7 +12,7 @@
     <div class="row mb-4">
         <div class="col">
             <h1>📦 Inventory Management</h1>
-            <p class="text-muted">Monitor and manage stock levels across all vendors</p>
+            <p class="text-muted">Monitor and manage stock levels across all locations</p>
         </div>
     </div>
 
@@ -40,7 +40,7 @@
                     <thead>
                         <tr>
                             <th>Product</th>
-                            <th>Vendor</th>
+                            <th>Location</th>
                             <th>Stock Level</th>
                             <th>Actions</th>
                         </tr>
@@ -103,12 +103,12 @@
         <h3 class="section-title">All Inventory</h3>
 
         <div class="mb-3">
-            <label class="form-label">Filter by Vendor</label>
-            <select class="form-select" @onchange="FilterByVendor">
-                <option value="">All Vendors</option>
-                @foreach (var vendor in vendors)
+            <label class="form-label">Filter by Location</label>
+            <select class="form-select" @onchange="FilterByLocation">
+                <option value="">All Locations</option>
+                @foreach (var location in locations)
                 {
-                    <option value="@vendor.Id">@vendor.Name</option>
+                    <option value="@location.Id">@location.Name</option>
                 }
             </select>
         </div>
@@ -118,7 +118,7 @@
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>Vendor</th>
+                        <th>Location</th>
                         <th>Stock Level</th>
                         <th>Min/Max</th>
                         <th>Last Restocked</th>
@@ -164,7 +164,7 @@
     private List<FestHubCentral.Web.Data.Models.Inventory> allInventory = new();
     private List<FestHubCentral.Web.Data.Models.Inventory> filteredInventory = new();
     private List<FestHubCentral.Web.Data.Models.Inventory> lowStockItems = new();
-    private List<Vendor> vendors = new();
+    private List<Location> locations = new();
 
     private FestHubCentral.Web.Data.Models.Inventory? selectedInventory;
     private bool showRestockModal = false;
@@ -185,7 +185,7 @@
         allInventory = (await InventoryService.GetAllInventoryAsync()).ToList();
         filteredInventory = allInventory;
         lowStockItems = (await InventoryService.GetLowStockItemsAsync()).ToList();
-        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+        locations = (await LocationService.GetAllLocationsAsync()).ToList();
 
         totalItems = allInventory.Count;
         goodStockCount = allInventory.Count(i => i.CurrentStock > i.MinimumStock);
@@ -193,17 +193,17 @@
         criticalStockCount = allInventory.Count(i => i.CurrentStock <= i.MinimumStock / 2);
     }
 
-    private void FilterByVendor(ChangeEventArgs e)
+    private void FilterByLocation(ChangeEventArgs e)
     {
-        var vendorIdStr = e.Value?.ToString();
-        if (string.IsNullOrEmpty(vendorIdStr))
+        var locationIdStr = e.Value?.ToString();
+        if (string.IsNullOrEmpty(locationIdStr))
         {
             filteredInventory = allInventory;
         }
         else
         {
-            var vendorId = int.Parse(vendorIdStr);
-            filteredInventory = allInventory.Where(i => i.Product.SupplierId == vendorId).ToList();
+            var locationId = int.Parse(locationIdStr);
+            filteredInventory = allInventory.Where(i => i.Product.SupplierId == locationId).ToList();
         }
     }
 

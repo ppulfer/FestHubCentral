@@ -36,6 +36,9 @@ namespace FestHubCentral.Web.Migrations
                     b.Property<bool>("IsResolved")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -66,14 +69,11 @@ namespace FestHubCentral.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int?>("VendorId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("LocationId");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("IsResolved", "CreatedAt");
 
@@ -191,6 +191,9 @@ namespace FestHubCentral.Web.Migrations
                     b.Property<bool>("IsOpen")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("LocationId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
@@ -215,12 +218,9 @@ namespace FestHubCentral.Web.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<int>("VendorId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("LocationId");
 
                     b.ToTable("CashRegisters");
                 });
@@ -298,6 +298,9 @@ namespace FestHubCentral.Web.Migrations
                     b.Property<DateTime>("LastRestocked")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MaximumStock")
                         .HasColumnType("integer");
 
@@ -317,59 +320,231 @@ namespace FestHubCentral.Web.Migrations
 
                     b.HasIndex("EventYear");
 
-                    b.HasIndex("ProductId")
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("ProductId", "LocationId", "EventYear")
                         .IsUnique();
 
                     b.ToTable("Inventories");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.InventoryTransfer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EventYear")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FromLocationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ToLocationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("TransferDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("FromLocationId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ToLocationId");
+
+                    b.HasIndex("EventYear", "TransferDate");
+
+                    b.ToTable("InventoryTransfers");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Location", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ContactPerson")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LocationSpot")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationSpot")
+                        .IsUnique();
+
+                    b.ToTable("Locations");
 
                     b.HasData(
                         new
                         {
-                            Id = 1,
+                            Id = 15,
+                            Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CurrentStock = 50,
-                            EventYear = 2026,
-                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            MaximumStock = 100,
-                            MinimumStock = 10,
-                            ProductId = 1,
-                            ReorderQuantity = 50
+                            LocationSpot = 1,
+                            Name = "Wiilaube"
                         },
                         new
                         {
-                            Id = 2,
+                            Id = 16,
+                            Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CurrentStock = 75,
-                            EventYear = 2026,
-                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            MaximumStock = 150,
-                            MinimumStock = 20,
-                            ProductId = 2,
-                            ReorderQuantity = 75
+                            LocationSpot = 2,
+                            Name = "Raclett-Zelt"
                         },
                         new
                         {
-                            Id = 3,
+                            Id = 17,
+                            Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CurrentStock = 8,
-                            EventYear = 2026,
-                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            MaximumStock = 200,
-                            MinimumStock = 15,
-                            ProductId = 3,
-                            ReorderQuantity = 100
+                            LocationSpot = 3,
+                            Name = "Winzerlounge"
                         },
                         new
                         {
-                            Id = 4,
+                            Id = 18,
+                            Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CurrentStock = 30,
-                            EventYear = 2026,
-                            LastRestocked = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            MaximumStock = 50,
-                            MinimumStock = 5,
-                            ProductId = 4,
-                            ReorderQuantity = 25
+                            LocationSpot = 4,
+                            Name = "Wümmetkafi"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 5,
+                            Name = "Wurst/Getränke Kirche"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 6,
+                            Name = "Wurst/Getränke Ackersteinstrasse"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 7,
+                            Name = "Bar Ackersteinstrasse"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 8,
+                            Name = "Bar Mühlehalde"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 9,
+                            Name = "Kiwanis"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 10,
+                            Name = "Rebhüsli"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 11,
+                            Name = "Fischstand"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Category = "Staging Area",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 12,
+                            Name = "OK-Ackerstein"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Category = "Staging Area",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 13,
+                            Name = "OK-Kirche"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 15,
+                            Name = "Crêpes Stand"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Category = "Vendor",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 16,
+                            Name = "Suuserwagen"
                         });
                 });
 
@@ -382,6 +557,9 @@ namespace FestHubCentral.Web.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("EventYear")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LocationId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Notes")
@@ -405,17 +583,14 @@ namespace FestHubCentral.Web.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<int>("VendorId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("EventYear");
 
+                    b.HasIndex("LocationId");
+
                     b.HasIndex("OrderNumber")
                         .IsUnique();
-
-                    b.HasIndex("VendorId");
 
                     b.ToTable("Orders");
                 });
@@ -493,44 +668,6 @@ namespace FestHubCentral.Web.Migrations
                     b.HasIndex("SupplierId");
 
                     b.ToTable("Products");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsAvailable = true,
-                            Name = "Cheeseburger",
-                            SupplierId = 1,
-                            Unit = "Piece"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsAvailable = true,
-                            Name = "French Fries",
-                            SupplierId = 1,
-                            Unit = "Portion"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsAvailable = true,
-                            Name = "Draft Beer",
-                            SupplierId = 2,
-                            Unit = "Glass"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsAvailable = true,
-                            Name = "Margherita Pizza",
-                            SupplierId = 3,
-                            Unit = "Piece"
-                        });
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.ProductEventPrice", b =>
@@ -547,12 +684,20 @@ namespace FestHubCentral.Web.Migrations
                     b.Property<int>("EventYear")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("Price")
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PurchasePrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("SellingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("SpecialPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -565,72 +710,6 @@ namespace FestHubCentral.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("ProductEventPrices");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            Price = 8.00m,
-                            ProductId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            Price = 3.50m,
-                            ProductId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            Price = 5.50m,
-                            ProductId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            Price = 11.00m,
-                            ProductId = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            Price = 8.50m,
-                            ProductId = 1
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            Price = 4.00m,
-                            ProductId = 2
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            Price = 6.00m,
-                            ProductId = 3
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            Price = 12.00m,
-                            ProductId = 4
-                        });
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Settings", b =>
@@ -741,204 +820,57 @@ namespace FestHubCentral.Web.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 1,
-                            ContactPerson = "John Doe",
-                            ContactPhone = "+41 44 123 4567",
+                            Id = 11,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Local Meat Supplier"
+                            Name = "Wegmann"
                         },
                         new
                         {
-                            Id = 2,
-                            ContactPerson = "Jane Smith",
-                            ContactPhone = "+41 44 234 5678",
+                            Id = 12,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Beverages AG"
+                            Name = "Zweifel"
                         },
                         new
                         {
-                            Id = 3,
-                            ContactPerson = "Mike Johnson",
-                            ContactPhone = "+41 44 345 6789",
+                            Id = 13,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Bakery & Pizza Co"
-                        });
-                });
-
-            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Vendor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("ContactEmail")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("ContactPerson")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("ContactPhone")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("LocationSpot")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationSpot")
-                        .IsUnique();
-
-                    b.ToTable("Vendors");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 15,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 1,
-                            Name = "Wiilaube"
+                            Name = "Stadt Zürich"
                         },
                         new
                         {
-                            Id = 16,
-                            Category = "Mixed",
+                            Id = 14,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 2,
-                            Name = "Raclett-Zelt"
+                            Name = "Top CC"
                         },
                         new
                         {
                             Id = 17,
-                            Category = "Mixed",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 3,
-                            Name = "Winzerlounge"
+                            Name = "Steiner"
                         },
                         new
                         {
                             Id = 18,
-                            Category = "Mixed",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 4,
-                            Name = "Wümmetkafi"
+                            Name = "Angst"
                         },
                         new
                         {
                             Id = 19,
-                            Category = "Mixed",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 5,
-                            Name = "Wurst/Getränke Kirche"
+                            Name = "OK"
                         },
                         new
                         {
                             Id = 20,
-                            Category = "Mixed",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 6,
-                            Name = "Wurst/Getränke Ackersteinstrasse"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 7,
-                            Name = "Bar Ackersteinstrasse"
+                            Name = "Lenzlinger"
                         },
                         new
                         {
                             Id = 22,
-                            Category = "Mixed",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 8,
-                            Name = "Bar Mühlehalde"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 9,
-                            Name = "Kiwanis"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 10,
-                            Name = "Rebhüsli"
-                        },
-                        new
-                        {
-                            Id = 25,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 11,
-                            Name = "Fischstand"
-                        },
-                        new
-                        {
-                            Id = 26,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 12,
-                            Name = "OK-Ackerstein"
-                        },
-                        new
-                        {
-                            Id = 27,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 13,
-                            Name = "OK-Kirche"
-                        },
-                        new
-                        {
-                            Id = 28,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 14,
-                            Name = "Lieferant"
-                        },
-                        new
-                        {
-                            Id = 29,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 15,
-                            Name = "Crêpes Stand"
-                        },
-                        new
-                        {
-                            Id = 30,
-                            Category = "Mixed",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            LocationSpot = 16,
-                            Name = "Suuserwagen"
+                            Name = "Rausch Packaging"
                         });
                 });
 
@@ -1076,29 +1008,29 @@ namespace FestHubCentral.Web.Migrations
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Alert", b =>
                 {
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("FestHubCentral.Web.Data.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId");
 
-                    b.HasOne("FestHubCentral.Web.Data.Models.Vendor", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.Navigation("Location");
 
                     b.Navigation("Product");
-
-                    b.Navigation("Vendor");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.CashRegister", b =>
                 {
-                    b.HasOne("FestHubCentral.Web.Data.Models.Vendor", "Vendor")
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "Location")
                         .WithMany()
-                        .HasForeignKey("VendorId")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Vendor");
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Inventory", b =>
@@ -1109,15 +1041,62 @@ namespace FestHubCentral.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("FestHubCentral.Web.Data.Models.Product", "Product")
-                        .WithOne("Inventory")
-                        .HasForeignKey("FestHubCentral.Web.Data.Models.Inventory", "ProductId")
+                        .WithMany("Inventories")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Event");
 
+                    b.Navigation("Location");
+
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.InventoryTransfer", b =>
+                {
+                    b.HasOne("FestHubCentral.Web.Data.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("FestHubCentral.Web.Data.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventYear")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "FromLocation")
+                        .WithMany()
+                        .HasForeignKey("FromLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FestHubCentral.Web.Data.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "ToLocation")
+                        .WithMany()
+                        .HasForeignKey("ToLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("FromLocation");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ToLocation");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Order", b =>
@@ -1128,15 +1107,15 @@ namespace FestHubCentral.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FestHubCentral.Web.Data.Models.Vendor", "Vendor")
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "Location")
                         .WithMany("Orders")
-                        .HasForeignKey("VendorId")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Event");
 
-                    b.Navigation("Vendor");
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.OrderItem", b =>
@@ -1259,6 +1238,11 @@ namespace FestHubCentral.Web.Migrations
                     b.Navigation("ProductEventPrices");
                 });
 
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Location", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
@@ -1266,7 +1250,7 @@ namespace FestHubCentral.Web.Migrations
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Product", b =>
                 {
-                    b.Navigation("Inventory");
+                    b.Navigation("Inventories");
 
                     b.Navigation("OrderItems");
 
@@ -1276,11 +1260,6 @@ namespace FestHubCentral.Web.Migrations
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Supplier", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Vendor", b =>
-                {
-                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

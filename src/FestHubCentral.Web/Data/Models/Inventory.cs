@@ -10,6 +10,9 @@ public class Inventory
     public int ProductId { get; set; }
     public Product Product { get; set; } = null!;
 
+    public int? LocationId { get; set; }
+    public Location? Location { get; set; }
+
     [Required]
     [Range(0, int.MaxValue)]
     public int CurrentStock { get; set; }

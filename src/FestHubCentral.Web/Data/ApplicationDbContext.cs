@@ -12,11 +12,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Event> Events => Set<Event>();
-    public DbSet<Vendor> Vendors => Set<Vendor>();
+    public DbSet<Location> Locations => Set<Location>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductEventPrice> ProductEventPrices => Set<ProductEventPrice>();
     public DbSet<Inventory> Inventories => Set<Inventory>();
+    public DbSet<InventoryTransfer> InventoryTransfers => Set<InventoryTransfer>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Alert> Alerts => Set<Alert>();
@@ -48,7 +49,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Vendor>(entity =>
+        modelBuilder.Entity<Location>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.LocationSpot).IsUnique();
@@ -56,8 +57,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Category).IsRequired();
 
             entity.HasMany(e => e.Orders)
-                .WithOne(e => e.Vendor)
-                .HasForeignKey(e => e.VendorId)
+                .WithOne(e => e.Location)
+                .HasForeignKey(e => e.LocationId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -76,24 +77,57 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
-
-            entity.HasOne(e => e.Inventory)
-                .WithOne(e => e.Product)
-                .HasForeignKey<Inventory>(e => e.ProductId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ProductEventPrice>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.ProductId, e.EventYear }).IsUnique();
-            entity.Property(e => e.Price).HasPrecision(18, 2);
+            entity.Property(e => e.PurchasePrice).HasPrecision(18, 2);
+            entity.Property(e => e.SellingPrice).HasPrecision(18, 2);
+            entity.Property(e => e.SpecialPrice).HasPrecision(18, 2);
         });
 
         modelBuilder.Entity<Inventory>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.ProductId).IsUnique();
+            entity.HasIndex(e => new { e.ProductId, e.LocationId, e.EventYear }).IsUnique();
+
+            entity.HasOne(e => e.Location)
+                .WithMany()
+                .HasForeignKey(e => e.LocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<InventoryTransfer>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.EventYear, e.TransferDate });
+
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.FromLocation)
+                .WithMany()
+                .HasForeignKey(e => e.FromLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ToLocation)
+                .WithMany()
+                .HasForeignKey(e => e.ToLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Event)
+                .WithMany()
+                .HasForeignKey(e => e.EventYear)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -125,9 +159,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => new { e.IsResolved, e.CreatedAt });
 
-            entity.HasOne(e => e.Vendor)
+            entity.HasOne(e => e.Location)
                 .WithMany()
-                .HasForeignKey(e => e.VendorId)
+                .HasForeignKey(e => e.LocationId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -142,9 +176,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.CardSales).HasPrecision(18, 2);
             entity.Property(e => e.TokenSales).HasPrecision(18, 2);
 
-            entity.HasOne(e => e.Vendor)
+            entity.HasOne(e => e.Location)
                 .WithMany()
-                .HasForeignKey(e => e.VendorId)
+                .HasForeignKey(e => e.LocationId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -189,68 +223,51 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Event>().HasData(event2024, event2026);
 
-        var vendors = new[]
+        var locations = new[]
         {
-            new Vendor { Id = 15, Name = "Wiilaube", Category = "Mixed", LocationSpot = 1, CreatedAt = seedDate },
-            new Vendor { Id = 16, Name = "Raclett-Zelt", Category = "Mixed", LocationSpot = 2, CreatedAt = seedDate },
-            new Vendor { Id = 17, Name = "Winzerlounge", Category = "Mixed", LocationSpot = 3, CreatedAt = seedDate },
-            new Vendor { Id = 18, Name = "Wümmetkafi", Category = "Mixed", LocationSpot = 4, CreatedAt = seedDate },
-            new Vendor { Id = 19, Name = "Wurst/Getränke Kirche", Category = "Mixed", LocationSpot = 5, CreatedAt = seedDate },
-            new Vendor { Id = 20, Name = "Wurst/Getränke Ackersteinstrasse", Category = "Mixed", LocationSpot = 6, CreatedAt = seedDate },
-            new Vendor { Id = 21, Name = "Bar Ackersteinstrasse", Category = "Mixed", LocationSpot = 7, CreatedAt = seedDate },
-            new Vendor { Id = 22, Name = "Bar Mühlehalde", Category = "Mixed", LocationSpot = 8, CreatedAt = seedDate },
-            new Vendor { Id = 23, Name = "Kiwanis", Category = "Mixed", LocationSpot = 9, CreatedAt = seedDate },
-            new Vendor { Id = 24, Name = "Rebhüsli", Category = "Mixed", LocationSpot = 10, CreatedAt = seedDate },
-            new Vendor { Id = 25, Name = "Fischstand", Category = "Mixed", LocationSpot = 11, CreatedAt = seedDate },
-            new Vendor { Id = 26, Name = "OK-Ackerstein", Category = "Mixed", LocationSpot = 12, CreatedAt = seedDate },
-            new Vendor { Id = 27, Name = "OK-Kirche", Category = "Mixed", LocationSpot = 13, CreatedAt = seedDate },
-            new Vendor { Id = 28, Name = "Lieferant", Category = "Mixed", LocationSpot = 14, CreatedAt = seedDate },
-            new Vendor { Id = 29, Name = "Crêpes Stand", Category = "Mixed", LocationSpot = 15, CreatedAt = seedDate },
-            new Vendor { Id = 30, Name = "Suuserwagen", Category = "Mixed", LocationSpot = 16, CreatedAt = seedDate }
+            new Location { Id = 15, Name = "Wiilaube", Category = "Vendor", LocationSpot = 1, CreatedAt = seedDate },
+            new Location { Id = 16, Name = "Raclett-Zelt", Category = "Vendor", LocationSpot = 2, CreatedAt = seedDate },
+            new Location { Id = 17, Name = "Winzerlounge", Category = "Vendor", LocationSpot = 3, CreatedAt = seedDate },
+            new Location { Id = 18, Name = "Wümmetkafi", Category = "Vendor", LocationSpot = 4, CreatedAt = seedDate },
+            new Location { Id = 19, Name = "Wurst/Getränke Kirche", Category = "Vendor", LocationSpot = 5, CreatedAt = seedDate },
+            new Location { Id = 20, Name = "Wurst/Getränke Ackersteinstrasse", Category = "Vendor", LocationSpot = 6, CreatedAt = seedDate },
+            new Location { Id = 21, Name = "Bar Ackersteinstrasse", Category = "Vendor", LocationSpot = 7, CreatedAt = seedDate },
+            new Location { Id = 22, Name = "Bar Mühlehalde", Category = "Vendor", LocationSpot = 8, CreatedAt = seedDate },
+            new Location { Id = 23, Name = "Kiwanis", Category = "Vendor", LocationSpot = 9, CreatedAt = seedDate },
+            new Location { Id = 24, Name = "Rebhüsli", Category = "Vendor", LocationSpot = 10, CreatedAt = seedDate },
+            new Location { Id = 25, Name = "Fischstand", Category = "Vendor", LocationSpot = 11, CreatedAt = seedDate },
+            new Location { Id = 26, Name = "OK-Ackerstein", Category = "Staging Area", LocationSpot = 12, CreatedAt = seedDate },
+            new Location { Id = 27, Name = "OK-Kirche", Category = "Staging Area", LocationSpot = 13, CreatedAt = seedDate },
+            new Location { Id = 29, Name = "Crêpes Stand", Category = "Vendor", LocationSpot = 15, CreatedAt = seedDate },
+            new Location { Id = 30, Name = "Suuserwagen", Category = "Vendor", LocationSpot = 16, CreatedAt = seedDate }
         };
 
-        modelBuilder.Entity<Vendor>().HasData(vendors);
+        modelBuilder.Entity<Location>().HasData(locations);
 
         var suppliers = new[]
         {
-            new Supplier { Id = 1, Name = "Local Meat Supplier", ContactPerson = "John Doe", ContactPhone = "+41 44 123 4567", CreatedAt = seedDate },
-            new Supplier { Id = 2, Name = "Beverages AG", ContactPerson = "Jane Smith", ContactPhone = "+41 44 234 5678", CreatedAt = seedDate },
-            new Supplier { Id = 3, Name = "Bakery & Pizza Co", ContactPerson = "Mike Johnson", ContactPhone = "+41 44 345 6789", CreatedAt = seedDate }
+            new Supplier { Id = 11, Name = "Wegmann", CreatedAt = seedDate },
+            new Supplier { Id = 12, Name = "Zweifel", CreatedAt = seedDate },
+            new Supplier { Id = 13, Name = "Stadt Zürich", CreatedAt = seedDate },
+            new Supplier { Id = 14, Name = "Top CC", CreatedAt = seedDate },
+            new Supplier { Id = 17, Name = "Steiner", CreatedAt = seedDate },
+            new Supplier { Id = 18, Name = "Angst", CreatedAt = seedDate },
+            new Supplier { Id = 19, Name = "OK", CreatedAt = seedDate },
+            new Supplier { Id = 20, Name = "Lenzlinger", CreatedAt = seedDate },
+            new Supplier { Id = 22, Name = "Rausch Packaging", CreatedAt = seedDate }
         };
 
         modelBuilder.Entity<Supplier>().HasData(suppliers);
 
-        var products = new[]
-        {
-            new Product { Id = 1, Name = "Cheeseburger", Unit = "Piece", SupplierId = 1, IsAvailable = true, CreatedAt = seedDate },
-            new Product { Id = 2, Name = "French Fries", Unit = "Portion", SupplierId = 1, IsAvailable = true, CreatedAt = seedDate },
-            new Product { Id = 3, Name = "Draft Beer", Unit = "Glass", SupplierId = 2, IsAvailable = true, CreatedAt = seedDate },
-            new Product { Id = 4, Name = "Margherita Pizza", Unit = "Piece", SupplierId = 3, IsAvailable = true, CreatedAt = seedDate }
-        };
+        var products = Array.Empty<Product>();
 
         modelBuilder.Entity<Product>().HasData(products);
 
-        var productEventPrices = new[]
-        {
-            new ProductEventPrice { Id = 1, ProductId = 1, EventYear = 2024, Price = 8.00m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 2, ProductId = 2, EventYear = 2024, Price = 3.50m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 3, ProductId = 3, EventYear = 2024, Price = 5.50m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 4, ProductId = 4, EventYear = 2024, Price = 11.00m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 5, ProductId = 1, EventYear = 2026, Price = 8.50m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 6, ProductId = 2, EventYear = 2026, Price = 4.00m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 7, ProductId = 3, EventYear = 2026, Price = 6.00m, CreatedAt = seedDate },
-            new ProductEventPrice { Id = 8, ProductId = 4, EventYear = 2026, Price = 12.00m, CreatedAt = seedDate }
-        };
+        var productEventPrices = Array.Empty<ProductEventPrice>();
 
         modelBuilder.Entity<ProductEventPrice>().HasData(productEventPrices);
 
-        var inventories = new[]
-        {
-            new Inventory { Id = 1, ProductId = 1, CurrentStock = 50, MinimumStock = 10, MaximumStock = 100, ReorderQuantity = 50, EventYear = 2026, LastRestocked = seedDate, CreatedAt = seedDate },
-            new Inventory { Id = 2, ProductId = 2, CurrentStock = 75, MinimumStock = 20, MaximumStock = 150, ReorderQuantity = 75, EventYear = 2026, LastRestocked = seedDate, CreatedAt = seedDate },
-            new Inventory { Id = 3, ProductId = 3, CurrentStock = 8, MinimumStock = 15, MaximumStock = 200, ReorderQuantity = 100, EventYear = 2026, LastRestocked = seedDate, CreatedAt = seedDate },
-            new Inventory { Id = 4, ProductId = 4, CurrentStock = 30, MinimumStock = 5, MaximumStock = 50, ReorderQuantity = 25, EventYear = 2026, LastRestocked = seedDate, CreatedAt = seedDate }
-        };
+        var inventories = Array.Empty<Inventory>();
 
         modelBuilder.Entity<Inventory>().HasData(inventories);
 

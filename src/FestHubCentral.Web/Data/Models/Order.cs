@@ -11,8 +11,8 @@ public class Order
     public string OrderNumber { get; set; } = string.Empty;
 
     [Required]
-    public int VendorId { get; set; }
-    public Vendor Vendor { get; set; } = null!;
+    public int LocationId { get; set; }
+    public Location Location { get; set; } = null!;
 
     [Required]
     [MaxLength(50)]

@@ -3,7 +3,7 @@
 @using FestHubCentral.Web.Data.Models
 @using FestHubCentral.Web.Components.Shared
 @inject IOrderService OrderService
-@inject IVendorService VendorService
+@inject ILocationService LocationService
 @inject IInventoryService InventoryService
 @rendermode InteractiveServer
 
@@ -44,12 +44,12 @@
 
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">Vendor</label>
-                    <select class="form-select" @onchange="OnVendorSelected">
-                        <option value="">Select Vendor</option>
-                        @foreach (var vendor in vendors)
+                    <label class="form-label">Location</label>
+                    <select class="form-select" @onchange="OnLocationSelected">
+                        <option value="">Select Location</option>
+                        @foreach (var location in locations)
                         {
-                            <option value="@vendor.Id">@vendor.Name (Spot @vendor.LocationSpot)</option>
+                            <option value="@location.Id">@location.Name (Spot @location.LocationSpot)</option>
                         }
                     </select>
                 </div>
@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            @if (selectedVendor != null)
+            @if (selectedLocation != null)
             {
                 <h4 class="mt-4">Add Items</h4>
                 <div class="row mb-3">
@@ -71,7 +71,7 @@
                         <label class="form-label">Product</label>
                         <select class="form-select" @bind="selectedProductId">
                             <option value="0">Select Product</option>
-                            @* TODO: Need to refactor to query products separately since they're no longer tied to vendors *@
+                            @* TODO: Need to refactor to query products separately since they're no longer tied to locations *@
                             @foreach (var product in availableProducts)
                             {
                                 <option value="@product.Id">@product.Name</option>
@@ -144,12 +144,12 @@
         <div class="mb-3">
             <div class="row">
                 <div class="col-md-4">
-                    <label class="form-label">Filter by Vendor</label>
-                    <select class="form-select" @onchange="FilterByVendor">
-                        <option value="">All Vendors</option>
-                        @foreach (var vendor in vendors)
+                    <label class="form-label">Filter by Location</label>
+                    <select class="form-select" @onchange="FilterByLocation">
+                        <option value="">All Locations</option>
+                        @foreach (var location in locations)
                         {
-                            <option value="@vendor.Id">@vendor.Name</option>
+                            <option value="@location.Id">@location.Name</option>
                         }
                     </select>
                 </div>
@@ -170,7 +170,7 @@
                     <tr>
                         <th>Order #</th>
                         <th>Date/Time</th>
-                        <th>Vendor</th>
+                        <th>Location</th>
                         <th>Items</th>
                         <th>Total</th>
                         <th>Payment</th>
@@ -182,7 +182,7 @@
                         <tr>
                             <td><strong>@order.OrderNumber</strong></td>
                             <td>@order.OrderDate.ToString("g")</td>
-                            <td>@order.Vendor.Name</td>
+                            <td>@order.Location.Name</td>
                             <td>@order.OrderItems.Count items</td>
                             <td><strong>@order.TotalAmount.ToString("C")</strong></td>
                             <td><span class="badge bg-secondary">@order.PaymentMethod</span></td>
@@ -197,8 +197,8 @@
 @code {
     private List<Order> allOrders = new();
     private List<Order> filteredOrders = new();
-    private List<Vendor> vendors = new();
-    private Vendor? selectedVendor;
+    private List<Location> locations = new();
+    private Location? selectedLocation;
     private List<Product> availableProducts = new();
 
     private Order newOrder = new();
@@ -211,8 +211,8 @@
     private decimal cardSales = 0;
     private decimal cashSales = 0;
 
-    private DateTime filterStartDate = DateTime.Today;
-    private DateTime filterEndDate = DateTime.Today;
+    private DateTime filterStartDate = DateTime.UtcNow.Date;
+    private DateTime filterEndDate = DateTime.UtcNow.Date;
 
     protected override async Task OnInitializedAsync()
     {
@@ -223,13 +223,14 @@
     {
         allOrders = (await OrderService.GetAllOrdersAsync()).ToList();
         filteredOrders = allOrders;
-        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+        locations = (await LocationService.GetAllLocationsAsync()).ToList();
 
-        todaysSales = await OrderService.GetTotalSalesByDateAsync(DateTime.Today);
-        var todaysOrders = await OrderService.GetOrdersByDateRangeAsync(DateTime.Today, DateTime.Today.AddDays(1));
+        var today = DateTime.UtcNow.Date;
+        todaysSales = await OrderService.GetTotalSalesByDateAsync(today);
+        var todaysOrders = await OrderService.GetOrdersByDateRangeAsync(today, today.AddDays(1));
         todaysOrderCount = todaysOrders.Count();
 
-        var paymentBreakdown = await OrderService.GetSalesByPaymentMethodAsync(DateTime.Today);
+        var paymentBreakdown = await OrderService.GetSalesByPaymentMethodAsync(today);
         cardSales = paymentBreakdown.GetValueOrDefault("Card", 0);
         cashSales = paymentBreakdown.GetValueOrDefault("Cash", 0);
     }
@@ -247,26 +248,26 @@
     private void CancelNewOrder()
     {
         newOrder = new Order();
-        selectedVendor = null;
+        selectedLocation = null;
         selectedProductId = 0;
         quantity = 1;
         showNewOrderForm = false;
     }
 
-    private async Task OnVendorSelected(ChangeEventArgs e)
+    private async Task OnLocationSelected(ChangeEventArgs e)
     {
-        var vendorIdStr = e.Value?.ToString();
-        if (!string.IsNullOrEmpty(vendorIdStr))
+        var locationIdStr = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(locationIdStr))
         {
-            var vendorId = int.Parse(vendorIdStr);
-            selectedVendor = await VendorService.GetVendorByIdAsync(vendorId);
-            newOrder.VendorId = vendorId;
+            var locationId = int.Parse(locationIdStr);
+            selectedLocation = await LocationService.GetLocationByIdAsync(locationId);
+            newOrder.LocationId = locationId;
         }
     }
 
     private void AddOrderItem()
     {
-        if (selectedProductId > 0 && quantity > 0 && selectedVendor != null)
+        if (selectedProductId > 0 && quantity > 0 && selectedLocation != null)
         {
             var product = availableProducts.FirstOrDefault(p => p.Id == selectedProductId);
             if (product != null)
@@ -312,17 +313,17 @@
         return availableProducts.FirstOrDefault(p => p.Id == productId)?.Name ?? "Unknown";
     }
 
-    private void FilterByVendor(ChangeEventArgs e)
+    private void FilterByLocation(ChangeEventArgs e)
     {
-        var vendorIdStr = e.Value?.ToString();
-        if (string.IsNullOrEmpty(vendorIdStr))
+        var locationIdStr = e.Value?.ToString();
+        if (string.IsNullOrEmpty(locationIdStr))
         {
             filteredOrders = allOrders;
         }
         else
         {
-            var vendorId = int.Parse(vendorIdStr);
-            filteredOrders = allOrders.Where(o => o.VendorId == vendorId).ToList();
+            var locationId = int.Parse(locationIdStr);
+            filteredOrders = allOrders.Where(o => o.LocationId == locationId).ToList();
         }
     }
 

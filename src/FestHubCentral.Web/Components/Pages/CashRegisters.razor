@@ -3,7 +3,7 @@
 @using FestHubCentral.Web.Data.Models
 @using FestHubCentral.Web.Components.Shared
 @inject ICashRegisterService CashRegisterService
-@inject IVendorService VendorService
+@inject ILocationService LocationService
 @rendermode InteractiveServer
 
 <PageTitle>Cash Registers - FestHub Central</PageTitle>
@@ -40,12 +40,12 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
-                        <label class="form-label">Vendor</label>
-                        <select class="form-select" @bind="newRegister.VendorId">
-                            <option value="0">Select Vendor</option>
-                            @foreach (var vendor in availableVendors)
+                        <label class="form-label">Location</label>
+                        <select class="form-select" @bind="newRegister.LocationId">
+                            <option value="0">Select Location</option>
+                            @foreach (var location in availableLocations)
                             {
-                                <option value="@vendor.Id">@vendor.Name (Spot @vendor.LocationSpot)</option>
+                                <option value="@location.Id">@location.Name (Spot @location.LocationSpot)</option>
                             }
                         </select>
                     </div>
@@ -164,7 +164,7 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h5>@register.RegisterName</h5>
-                                        <p class="mb-1"><strong>Vendor:</strong> @register.Vendor.Name</p>
+                                        <p class="mb-1"><strong>Location:</strong> @register.Location.Name</p>
                                         <small class="text-muted">
                                             Opened: @register.OpenedAt.ToString("g") by @register.OpenedBy<br />
                                             Opening Amount: @register.OpeningAmount.ToString("C")
@@ -194,7 +194,7 @@
                         @foreach (var register in closedRegisters.Take(5))
                         {
                             <div class="list-group-item">
-                                <h6>@register.RegisterName - @register.Vendor.Name</h6>
+                                <h6>@register.RegisterName - @register.Location.Name</h6>
                                 <small class="text-muted">
                                     Closed: @register.ClosedAt?.ToString("g")<br />
                                     Expected: @register.ExpectedAmount.ToString("C") |
@@ -220,8 +220,8 @@
     private List<CashRegister> allRegisters = new();
     private List<CashRegister> openRegisters = new();
     private List<CashRegister> closedRegisters = new();
-    private List<Vendor> vendors = new();
-    private List<Vendor> availableVendors = new();
+    private List<Location> locations = new();
+    private List<Location> availableLocations = new();
 
     private CashRegister newRegister = new();
     private CashRegister? closingRegister;
@@ -243,11 +243,11 @@
     {
         allRegisters = (await CashRegisterService.GetAllCashRegistersAsync()).ToList();
         openRegisters = (await CashRegisterService.GetOpenCashRegistersAsync()).ToList();
-        closedRegisters = allRegisters.Where(r => !r.IsOpen && r.ClosedAt?.Date == DateTime.Today).ToList();
-        vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+        closedRegisters = allRegisters.Where(r => !r.IsOpen && r.ClosedAt?.Date == DateTime.UtcNow.Date).ToList();
+        locations = (await LocationService.GetAllLocationsAsync()).ToList();
 
-        var openVendorIds = openRegisters.Select(r => r.VendorId).ToHashSet();
-        availableVendors = vendors.Where(v => !openVendorIds.Contains(v.Id)).ToList();
+        var openLocationIds = openRegisters.Select(r => r.LocationId).ToHashSet();
+        availableLocations = locations.Where(v => !openLocationIds.Contains(v.Id)).ToList();
 
         totalCash = openRegisters.Sum(r => r.OpeningAmount);
         discrepancyCount = closedRegisters.Count(r => Math.Abs(r.Discrepancy) > 0.01m);
@@ -271,7 +271,7 @@
 
     private async Task OpenRegister()
     {
-        if (newRegister.VendorId > 0)
+        if (newRegister.LocationId > 0)
         {
             await CashRegisterService.OpenCashRegisterAsync(newRegister);
             await LoadData();

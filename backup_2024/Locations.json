@@ -1,0 +1,114 @@
+[
+  {
+    "Id": 15,
+    "Name": "Wiilaube",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 16,
+    "Name": "Raclett-Zelt",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 17,
+    "Name": "Winzerlounge",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 18,
+    "Name": "Wümmetkafi",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 19,
+    "Name": "Wurst/Getränke Kirche",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 20,
+    "Name": "Wurst/Getränke Ackersteinstrasse",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 21,
+    "Name": "Bar Ackersteinstrasse",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 22,
+    "Name": "Bar Mühlehalde",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 23,
+    "Name": "Kiwanis",
+    "Internal": false,
+    "IsSelling": true,
+    "PriceCategory": "3"
+  },
+  {
+    "Id": 24,
+    "Name": "Rebhüsli",
+    "Internal": false,
+    "IsSelling": true,
+    "PriceCategory": "3"
+  },
+  {
+    "Id": 25,
+    "Name": "Fischstand",
+    "Internal": false,
+    "IsSelling": true,
+    "PriceCategory": "2"
+  },
+  {
+    "Id": 26,
+    "Name": "OK-Ackerstein",
+    "Internal": true,
+    "IsSelling": false,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 27,
+    "Name": "OK-Kirche",
+    "Internal": true,
+    "IsSelling": false,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 28,
+    "Name": "Lieferant",
+    "Internal": true,
+    "IsSelling": false,
+    "PriceCategory": "1"
+  },
+  {
+    "Id": 29,
+    "Name": "Crêpes Stand",
+    "Internal": false,
+    "IsSelling": true,
+    "PriceCategory": "2"
+  },
+  {
+    "Id": 30,
+    "Name": "Suuserwagen ",
+    "Internal": true,
+    "IsSelling": true,
+    "PriceCategory": "1"
+  }
+]

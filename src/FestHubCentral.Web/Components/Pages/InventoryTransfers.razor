@@ -1,0 +1,352 @@
+@page "/inventory-transfers"
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Services.Interfaces
+@inject IInventoryTransferService TransferService
+@inject ILocationService LocationService
+@inject IInventoryService InventoryService
+@inject ISettingsService SettingsService
+@inject IStringLocalizer<InventoryTransfers> Localizer
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>@Localizer["InventoryTransfers"]</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">@Localizer["InventoryTransfers"]</h2>
+                <button class="btn btn-primary" @onclick="ShowNewTransferForm">
+                    <i class="bi bi-plus-circle me-2"></i>@Localizer["NewTransfer"]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">@Localizer["TotalTransfers"]</h6>
+                    <h3 class="mb-0">@allTransfers.Count</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">@Localizer["TodaysTransfers"]</h6>
+                    <h3 class="mb-0">@todaysTransfersCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">@Localizer["WarehouseToVendor"]</h6>
+                    <h3 class="mb-0">@warehouseToLocationCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">@Localizer["VendorToVendor"]</h6>
+                    <h3 class="mb-0">@locationToLocationCount</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@Localizer["Filters"]</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">@Localizer["StartDate"]</label>
+                    <input type="datetime-local" class="form-control" @bind="filterStartDateTime" @bind:after="ApplyFilters" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@Localizer["EndDate"]</label>
+                    <input type="datetime-local" class="form-control" @bind="filterEndDateTime" @bind:after="ApplyFilters" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@Localizer["Vendor"]</label>
+                    <select class="form-select" @bind="filterLocationId" @bind:after="ApplyFilters">
+                        <option value="0">@Localizer["AllVendors"]</option>
+                        @foreach (var location in locations)
+                        {
+                            <option value="@location.Id">@location.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">@Localizer["TransferType"]</label>
+                    <select class="form-select" @bind="filterTransferType" @bind:after="ApplyFilters">
+                        <option value="all">@Localizer["AllTypes"]</option>
+                        <option value="warehouse-to-vendor">@Localizer["WarehouseToVendor"]</option>
+                        <option value="vendor-to-vendor">@Localizer["VendorToVendor"]</option>
+                        <option value="vendor-to-warehouse">@Localizer["VendorToWarehouse"]</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfers Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">@Localizer["TransferHistory"]</h5>
+        </div>
+        <div class="card-body">
+            @if (filteredTransfers.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>@Localizer["Date"]</th>
+                                <th>@Localizer["Product"]</th>
+                                <th>@Localizer["From"]</th>
+                                <th>@Localizer["To"]</th>
+                                <th>@Localizer["Amount"]</th>
+                                <th>@Localizer["Comment"]</th>
+                                <th>@Localizer["CreatedBy"]</th>
+                                <th>@Localizer["Actions"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transfer in filteredTransfers)
+                            {
+                                <tr>
+                                    <td>@transfer.TransferDate.ToLocalTime().ToString("g")</td>
+                                    <td>@transfer.Product?.Name</td>
+                                    <td>
+                                        @if (transfer.FromLocationId == null)
+                                        {
+                                            <span class="badge bg-secondary">@Localizer["Warehouse"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@transfer.FromLocation?.Name</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (transfer.ToLocationId == null)
+                                        {
+                                            <span class="badge bg-secondary">@Localizer["Warehouse"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@transfer.ToLocation?.Name</span>
+                                        }
+                                    </td>
+                                    <td><strong>@transfer.Amount</strong></td>
+                                    <td>@(string.IsNullOrEmpty(transfer.Comment) ? "-" : transfer.Comment)</td>
+                                    <td>@(transfer.CreatedByUser?.DisplayName ?? "-")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTransfer(transfer.Id)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-box-seam display-1 text-muted"></i>
+                    <p class="text-muted mt-3">@Localizer["NoTransfersFound"]</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- New Transfer Modal -->
+@if (showNewTransferForm)
+{
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Localizer["NewTransfer"]</h5>
+                    <button type="button" class="btn-close" @onclick="HideNewTransferForm"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="newTransfer" OnValidSubmit="CreateTransfer">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["Product"]</label>
+                            <select class="form-select" @bind="newTransfer.ProductId">
+                                <option value="0">@Localizer["SelectProduct"]</option>
+                                @foreach (var product in products)
+                                {
+                                    <option value="@product.Id">@product.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">@Localizer["From"]</label>
+                                <select class="form-select" @bind="newTransfer.FromLocationId">
+                                    <option value="">@Localizer["Warehouse"]</option>
+                                    @foreach (var location in locations)
+                                    {
+                                        <option value="@location.Id">@location.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">@Localizer["To"]</label>
+                                <select class="form-select" @bind="newTransfer.ToLocationId">
+                                    <option value="">@Localizer["Warehouse"]</option>
+                                    @foreach (var location in locations)
+                                    {
+                                        <option value="@location.Id">@location.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["Amount"]</label>
+                            <input type="number" class="form-control" @bind="newTransfer.Amount" min="1" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["Comment"]</label>
+                            <textarea class="form-control" @bind="newTransfer.Comment" rows="3"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" @onclick="HideNewTransferForm">
+                                @Localizer["Cancel"]
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                @Localizer["CreateTransfer"]
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show"></div>
+}
+
+@code {
+    private List<InventoryTransfer> allTransfers = new();
+    private List<InventoryTransfer> filteredTransfers = new();
+    private List<Location> locations = new();
+    private List<Product> products = new();
+    private Event? currentEvent;
+
+    private int todaysTransfersCount = 0;
+    private int warehouseToLocationCount = 0;
+    private int locationToLocationCount = 0;
+
+    private DateTime filterStartDateTime = DateTime.UtcNow.Date;
+    private DateTime filterEndDateTime = DateTime.UtcNow.Date.AddDays(1);
+    private int filterLocationId = 0;
+    private string filterTransferType = "all";
+
+    private bool showNewTransferForm = false;
+    private InventoryTransfer newTransfer = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeFilterDates();
+        await LoadData();
+    }
+
+    private async Task InitializeFilterDates()
+    {
+        var settings = await SettingsService.GetSettingsAsync();
+        if (settings?.UpcomingEvent != null)
+        {
+            currentEvent = settings.UpcomingEvent;
+            filterStartDateTime = currentEvent.StartDate;
+            filterEndDateTime = currentEvent.EndDate;
+        }
+    }
+
+    private async Task LoadData()
+    {
+        allTransfers = (await TransferService.GetAllTransfersAsync()).ToList();
+        locations = (await LocationService.GetAllLocationsAsync()).ToList();
+        products = (await InventoryService.GetAllInventoryAsync())
+            .Select(i => i.Product)
+            .Distinct()
+            .ToList();
+
+        CalculateStatistics();
+        ApplyFilters();
+    }
+
+    private void CalculateStatistics()
+    {
+        var today = DateTime.UtcNow.Date;
+        todaysTransfersCount = allTransfers.Count(t => t.TransferDate.Date == today);
+        warehouseToLocationCount = allTransfers.Count(t => t.FromLocationId == null && t.ToLocationId != null);
+        locationToLocationCount = allTransfers.Count(t => t.FromLocationId != null && t.ToLocationId != null);
+    }
+
+    private void ApplyFilters()
+    {
+        filteredTransfers = allTransfers
+            .Where(t => t.TransferDate >= filterStartDateTime && t.TransferDate <= filterEndDateTime)
+            .ToList();
+
+        if (filterLocationId > 0)
+        {
+            filteredTransfers = filteredTransfers
+                .Where(t => t.FromLocationId == filterLocationId || t.ToLocationId == filterLocationId)
+                .ToList();
+        }
+
+        filteredTransfers = filterTransferType switch
+        {
+            "warehouse-to-vendor" => filteredTransfers.Where(t => t.FromLocationId == null && t.ToLocationId != null).ToList(),
+            "vendor-to-vendor" => filteredTransfers.Where(t => t.FromLocationId != null && t.ToLocationId != null).ToList(),
+            "vendor-to-warehouse" => filteredTransfers.Where(t => t.FromLocationId != null && t.ToLocationId == null).ToList(),
+            _ => filteredTransfers
+        };
+    }
+
+    private void ShowNewTransferForm()
+    {
+        newTransfer = new InventoryTransfer();
+        showNewTransferForm = true;
+    }
+
+    private void HideNewTransferForm()
+    {
+        showNewTransferForm = false;
+        newTransfer = new InventoryTransfer();
+    }
+
+    private async Task CreateTransfer()
+    {
+        await TransferService.CreateTransferAsync(newTransfer);
+        HideNewTransferForm();
+        await LoadData();
+    }
+
+    private async Task DeleteTransfer(int id)
+    {
+        if (await TransferService.DeleteTransferAsync(id))
+        {
+            await LoadData();
+        }
+    }
+}

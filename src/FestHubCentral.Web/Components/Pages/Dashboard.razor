@@ -3,11 +3,11 @@
 @using FestHubCentral.Web.Components.Shared
 @using FestHubCentral.Web.Data.Models
 @using Microsoft.AspNetCore.SignalR.Client
-@inject IVendorService VendorService
+@inject ILocationService LocationService
 @inject IOrderService OrderService
 @inject IAlertService AlertService
 @inject IInventoryService InventoryService
-@inject IBrandingService BrandingService
+@inject ISettingsService SettingsService
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResources> Localizer
 @implements IAsyncDisposable
@@ -43,7 +43,7 @@
 
         <StatCard
             Icon="🏪"
-            Value="@totalVendors.ToString()"
+            Value="@totalLocations.ToString()"
             Label="@Localizer["Dashboard.TotalVendors"].Value"
             SubText="" />
 
@@ -70,12 +70,12 @@
                     @for (int i = 1; i <= 30; i++)
                     {
                         var spot = i;
-                        var vendor = vendors.FirstOrDefault(v => v.LocationSpot == spot);
-                        <div class="vendor-spot @GetSpotClass(vendor)" @onclick="() => NavigateToVendor(vendor?.Id)">
+                        var location = locations.FirstOrDefault(v => v.LocationSpot == spot);
+                        <div class="vendor-spot @GetSpotClass(location)" @onclick="() => NavigateToLocation(location?.Id)">
                             <div class="vendor-spot-number">@Localizer["Dashboard.Spot"].Value @spot</div>
-                            @if (vendor != null)
+                            @if (location != null)
                             {
-                                <div class="vendor-name">@vendor.Name</div>
+                                <div class="vendor-name">@location.Name</div>
                             }
                             else
                             {
@@ -135,19 +135,19 @@
 @code {
     private HubConnection? hubConnection;
     private Data.Models.Settings? brandingSettings;
-    private List<Data.Models.Vendor> vendors = new();
+    private List<Data.Models.Location> locations = new();
     private List<Data.Models.Alert> alerts = new();
     private List<object> topProducts = new();
     private decimal totalSales = 0;
     private int orderCount = 0;
-    private int totalVendors = 0;
+    private int totalLocations = 0;
     private int lowStockCount = 0;
     private int alertCount = 0;
     private readonly SemaphoreSlim _loadDataSemaphore = new(1, 1);
 
     protected override async Task OnInitializedAsync()
     {
-        brandingSettings = await BrandingService.GetSettingsAsync();
+        brandingSettings = await SettingsService.GetSettingsAsync();
         await LoadData();
         await InitializeSignalR();
     }
@@ -157,7 +157,7 @@
         await _loadDataSemaphore.WaitAsync();
         try
         {
-            vendors = (await VendorService.GetAllVendorsAsync()).ToList();
+            locations = (await LocationService.GetAllLocationsAsync()).ToList();
             alerts = (await AlertService.GetUnresolvedAlertsAsync()).ToList();
 
             var today = DateTime.UtcNow.Date;
@@ -168,7 +168,7 @@
             var allOrders = await OrderService.GetOrdersByDateRangeAsync(todayUtc, todayUtc.AddDays(1));
             orderCount = allOrders.Count();
 
-            totalVendors = vendors.Count;
+            totalLocations = locations.Count;
 
             var lowStockItems = await InventoryService.GetLowStockItemsAsync();
             lowStockCount = lowStockItems.Count();
@@ -200,7 +200,7 @@
             await InvokeAsync(StateHasChanged);
         });
 
-        hubConnection.On<int, bool>("ReceiveVendorStatusUpdate", async (vendorId, isOpen) =>
+        hubConnection.On<int, bool>("ReceiveLocationStatusUpdate", async (locationId, isOpen) =>
         {
             await LoadData();
             await InvokeAsync(StateHasChanged);
@@ -209,17 +209,17 @@
         await hubConnection.StartAsync();
     }
 
-    private string GetSpotClass(Data.Models.Vendor? vendor)
+    private string GetSpotClass(Data.Models.Location? location)
     {
-        if (vendor == null) return "empty";
+        if (location == null) return "empty";
         return "occupied";
     }
 
-    private void NavigateToVendor(int? vendorId)
+    private void NavigateToLocation(int? locationId)
     {
-        if (vendorId.HasValue)
+        if (locationId.HasValue)
         {
-            Navigation.NavigateTo($"/vendors/{vendorId}");
+            Navigation.NavigateTo($"/locations/{locationId}");
         }
     }
 

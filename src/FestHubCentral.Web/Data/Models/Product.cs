@@ -23,7 +23,7 @@ public class Product
     public int SupplierId { get; set; }
     public Supplier Supplier { get; set; } = null!;
 
-    public Inventory? Inventory { get; set; }
+    public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<ProductEventPrice> ProductEventPrices { get; set; } = new List<ProductEventPrice>();
 

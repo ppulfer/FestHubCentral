@@ -46,23 +46,27 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/account/access-denied";
 });
 
-builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
-builder.Services.AddScoped<IBrandingService, BrandingService>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();
 
 builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Seed admin user
+// Seed admin user and JSON data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await SeedAdminUser(services);
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    await DataSeeder.SeedFromJsonFiles(context);
 }
 
 // Configure the HTTP request pipeline.

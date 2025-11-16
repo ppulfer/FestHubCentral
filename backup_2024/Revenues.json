@@ -1,0 +1,370 @@
+[
+  {
+    "Id": 7,
+    "Name": "Umsatz Wiilaube Bargeld",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 8520.30,
+    "LocationId": 15
+  },
+  {
+    "Id": 8,
+    "Name": "Umsatz Wiilaube Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 763.50,
+    "LocationId": 15
+  },
+  {
+    "Id": 9,
+    "Name": "Umsatz Wiilaube Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 10122.45,
+    "LocationId": 15
+  },
+  {
+    "Id": 10,
+    "Name": "Umsatz Raclettezelt Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 10409.15,
+    "LocationId": 16
+  },
+  {
+    "Id": 11,
+    "Name": "Umsatz Raclettezelt Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 5190.00,
+    "LocationId": 16
+  },
+  {
+    "Id": 12,
+    "Name": "Umsatz Raclettezelt Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 11460.15,
+    "LocationId": 16
+  },
+  {
+    "Id": 13,
+    "Name": "Umsatz Winzerlounge Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 9131.10,
+    "LocationId": 17
+  },
+  {
+    "Id": 14,
+    "Name": "Umsatz Winzerlounge Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 5699.50,
+    "LocationId": 17
+  },
+  {
+    "Id": 15,
+    "Name": "Umsatz Winzerlounge Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 7342.25,
+    "LocationId": 17
+  },
+  {
+    "Id": 19,
+    "Name": "Umsatz Wiibar Bargeld",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 3765.50,
+    "LocationId": 15
+  },
+  {
+    "Id": 20,
+    "Name": "Umsatz Wiibar Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 3970.00,
+    "LocationId": 15
+  },
+  {
+    "Id": 21,
+    "Name": "Umsatz Wiibar Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 2317.75,
+    "LocationId": 15
+  },
+  {
+    "Id": 23,
+    "Name": "Verkauf Wiilaube zu Gunsten ZKB-Anlass (Ravioli 6x21=126)",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 126.00,
+    "LocationId": 15
+  },
+  {
+    "Id": 24,
+    "Name": "Verkauf Raclette-Zelt zu Gunsten ZKB-Event (Käseteller)",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 120.00,
+    "LocationId": 16
+  },
+  {
+    "Id": 25,
+    "Name": "Verkauf Winzerlounge zu Gunsten ZKB-Event (Winzerplättli)",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 148.50,
+    "LocationId": 17
+  },
+  {
+    "Id": 26,
+    "Name": "Verkauf Winzerlounge Sponsoren-Apero OK",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 1210.00,
+    "LocationId": 17
+  },
+  {
+    "Id": 27,
+    "Name": "Verkauf Winzerlounge Helferapro SO-Abend",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 425.00,
+    "LocationId": 17
+  },
+  {
+    "Id": 28,
+    "Name": "Umsatz Winzerlounge Wertbons 95 Stück à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 475.00,
+    "LocationId": 17
+  },
+  {
+    "Id": 29,
+    "Name": "Umsatz Wiilaube Wertbons 9 Stück à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 45.00,
+    "LocationId": 15
+  },
+  {
+    "Id": 30,
+    "Name": "Umsatz Wiibar Wertbons 59 Stück à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 295.00,
+    "LocationId": 15
+  },
+  {
+    "Id": 31,
+    "Name": "Umsatz Raclettezelt Wertbons 68 Stück à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 340.00,
+    "LocationId": 16
+  },
+  {
+    "Id": 32,
+    "Name": "Umsatz Wümmetkafi Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 9848.25,
+    "LocationId": 18
+  },
+  {
+    "Id": 33,
+    "Name": "Umsatz Wümmetkafi Wertbons 64 Stück à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 320.00,
+    "LocationId": 18
+  },
+  {
+    "Id": 34,
+    "Name": "Umsatz Wümmetkafi Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 6198.50,
+    "LocationId": 18
+  },
+  {
+    "Id": 35,
+    "Name": "Umsatz Wümmetkafi Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 1881.80,
+    "LocationId": 18
+  },
+  {
+    "Id": 36,
+    "Name": "Verkauf Wümmetkafi für ZKB-Event",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 120.00,
+    "LocationId": 18
+  },
+  {
+    "Id": 37,
+    "Name": "Umsatz Wümmetkafi Helferbons (Kuchen) 100 Stück à 4.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 400.00,
+    "LocationId": 18
+  },
+  {
+    "Id": 38,
+    "Name": "Umsatz Wu-Ge-Stand Kirchplatz Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 11083.80,
+    "LocationId": 19
+  },
+  {
+    "Id": 39,
+    "Name": "Umsatz Wu-Ge-Stand Kirchplatz Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 9738.50,
+    "LocationId": 19
+  },
+  {
+    "Id": 40,
+    "Name": "Umsatz Wu-Ge-Stand Kirchplatz Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 3835.50,
+    "LocationId": 19
+  },
+  {
+    "Id": 41,
+    "Name": "Umsatz Wu-Ge-Stand Kirchplatz 88 Wertbons à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 440.00,
+    "LocationId": 19
+  },
+  {
+    "Id": 42,
+    "Name": "Umsatz Wu-Ge-Stand Ackerstein Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 5861.20,
+    "LocationId": 20
+  },
+  {
+    "Id": 43,
+    "Name": "Umsatz Wu-Ge-Stand Ackerstein Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 3260.50,
+    "LocationId": 20
+  },
+  {
+    "Id": 44,
+    "Name": "Umsatz Wu-Gestand Ackerstein Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 3555.61,
+    "LocationId": 20
+  },
+  {
+    "Id": 45,
+    "Name": "Umsatz Wu-Ge-Stand Ackerstein 15 Wertbons à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 75.00,
+    "LocationId": 20
+  },
+  {
+    "Id": 46,
+    "Name": "Umsatz Wümmetbar Ackerstein Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 1731.45,
+    "LocationId": 21
+  },
+  {
+    "Id": 47,
+    "Name": "Umsatz Wümmetbar Ackerstein Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 2498.55,
+    "LocationId": 21
+  },
+  {
+    "Id": 48,
+    "Name": "Umsatz Wümmetbar Ackerstein Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 275.95,
+    "LocationId": 21
+  },
+  {
+    "Id": 49,
+    "Name": "Umsatz Wümmetbar Ackerstein 7 Wertbons à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 35.00,
+    "LocationId": 21
+  },
+  {
+    "Id": 50,
+    "Name": "Umsatz Wümmetbar Mühlehalde Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 2508.15,
+    "LocationId": 22
+  },
+  {
+    "Id": 51,
+    "Name": "Umsatz Wümmetbar Mühlehalde Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 1802.00,
+    "LocationId": 22
+  },
+  {
+    "Id": 52,
+    "Name": "Umsatz Wümmetbar Mühlehalde Terminal",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 2858.50,
+    "LocationId": 22
+  },
+  {
+    "Id": 53,
+    "Name": "Umsatz Wümmetbar Mühlehalde 5 Wertbons à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 25.00,
+    "LocationId": 22
+  },
+  {
+    "Id": 54,
+    "Name": "Umsatz Suuserwagen Bar",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 1542.65,
+    "LocationId": 30
+  },
+  {
+    "Id": 55,
+    "Name": "Umsatz Suuserwagen Twint",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 810.00,
+    "LocationId": 30
+  },
+  {
+    "Id": 56,
+    "Name": "Umsatz Suuserwagen 8 Wertbons à 5.--",
+    "Amount": null,
+    "ItemPrice": null,
+    "TotalPrice": 40.00,
+    "LocationId": 30
+  }
+]

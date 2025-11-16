@@ -16,7 +16,14 @@ public class ProductEventPrice
 
     [Required]
     [Range(0.01, 1000000)]
-    public decimal Price { get; set; }
+    public decimal PurchasePrice { get; set; }
+
+    [Required]
+    [Range(0.01, 1000000)]
+    public decimal SellingPrice { get; set; }
+
+    [Range(0, 1000000)]
+    public decimal? SpecialPrice { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

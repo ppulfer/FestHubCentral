@@ -6,7 +6,7 @@ public interface IAlertService
 {
     Task<IEnumerable<Alert>> GetAllAlertsAsync();
     Task<IEnumerable<Alert>> GetUnresolvedAlertsAsync();
-    Task<IEnumerable<Alert>> GetAlertsByVendorAsync(int vendorId);
+    Task<IEnumerable<Alert>> GetAlertsByLocationAsync(int locationId);
     Task<Alert?> GetAlertByIdAsync(int id);
     Task<Alert> CreateAlertAsync(Alert alert);
     Task<Alert> ResolveAlertAsync(int id, string resolvedBy);

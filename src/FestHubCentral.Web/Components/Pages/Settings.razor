@@ -1,7 +1,7 @@
 @page "/settings"
 @using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Data.Models
-@inject IBrandingService BrandingService
+@inject ISettingsService SettingsService
 @inject IStringLocalizer<SharedResources> Localizer
 @rendermode InteractiveServer
 
@@ -173,7 +173,7 @@
 
     private async Task LoadSettings()
     {
-        settings = await BrandingService.GetSettingsAsync();
+        settings = await SettingsService.GetSettingsAsync();
         saveMessage = null;
         uploadMessage = null;
     }
@@ -197,12 +197,12 @@
             if (selectedFile != null)
             {
                 using var stream = selectedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-                settings.LogoPath = await BrandingService.SaveLogoAsync(stream, selectedFile.Name);
+                settings.LogoPath = await SettingsService.SaveLogoAsync(stream, selectedFile.Name);
                 uploadMessage = Localizer["Settings.LogoUploaded"];
             }
 
             settings.UpdatedBy = "Admin";
-            await BrandingService.UpdateSettingsAsync(settings);
+            await SettingsService.UpdateSettingsAsync(settings);
 
             saveMessage = Localizer["Settings.SettingsSaved"];
             selectedFile = null;

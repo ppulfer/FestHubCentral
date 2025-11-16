@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FestHubCentral.Web.Data.Models;
 
-public class Vendor
+public class Location
 {
     public int Id { get; set; }
 

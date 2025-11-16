@@ -10,7 +10,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResources> Localizer
-@inject IBrandingService BrandingService
+@inject ISettingsService SettingsService
 
 <PageTitle>Login</PageTitle>
 
@@ -199,7 +199,7 @@
     protected override async Task OnInitializedAsync()
     {
         loginModel ??= new LoginModel();
-        brandingSettings = await BrandingService.GetSettingsAsync();
+        brandingSettings = await SettingsService.GetSettingsAsync();
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
