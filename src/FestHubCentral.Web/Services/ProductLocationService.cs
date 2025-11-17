@@ -43,6 +43,8 @@ public class ProductLocationService : IProductLocationService
         return await _context.ProductLocations
             .Include(f => f.Product)
                 .ThenInclude(p => p.Supplier)
+            .Include(f => f.Product)
+                .ThenInclude(p => p.ProductEventPrices)
             .Include(f => f.Location)
             .Where(f => f.LocationId == locationId && f.EventYear == eventYear)
             .OrderBy(f => f.Product.Name)

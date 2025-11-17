@@ -12,13 +12,6 @@
 <PageTitle>Location Dashboard</PageTitle>
 
 <div class="container-fluid">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item active">Location Dashboard</li>
-        </ol>
-    </nav>
-
     @if (authState?.User?.Identity?.IsAuthenticated == true)
     {
         @if (userLocation != null)
@@ -146,7 +139,7 @@
                                                                 break;
                                                         }
                                                     </td>
-                                                    <td>@tr.RequestedAt.ToString("dd.MM.yyyy")</td>
+                                                    <td>@tr.RequestedAt.ToString("dd.MM.yyyy HH:mm")</td>
                                                 </tr>
                                             }
                                         </tbody>

@@ -56,22 +56,22 @@
 
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link @(selectedTab == "pending" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("pending", e))">
+            <a class="nav-link @(selectedTab == "pending" ? "active" : "")" href="#" @onclick="@(() => SelectTab("pending"))" @onclick:preventDefault>
                 Pending <span class="badge bg-warning">@(pendingRequests?.Count ?? 0)</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(selectedTab == "approved" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("approved", e))">
+            <a class="nav-link @(selectedTab == "approved" ? "active" : "")" href="#" @onclick="@(() => SelectTab("approved"))" @onclick:preventDefault>
                 Approved <span class="badge bg-success">@(approvedRequests?.Count ?? 0)</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(selectedTab == "rejected" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("rejected", e))">
+            <a class="nav-link @(selectedTab == "rejected" ? "active" : "")" href="#" @onclick="@(() => SelectTab("rejected"))" @onclick:preventDefault>
                 Rejected <span class="badge bg-danger">@(rejectedRequests?.Count ?? 0)</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(selectedTab == "all" ? "active" : "")" href="#" @onclick="@((e) => SelectTab("all", e))">
+            <a class="nav-link @(selectedTab == "all" ? "active" : "")" href="#" @onclick="@(() => SelectTab("all"))" @onclick:preventDefault>
                 All
             </a>
         </li>
@@ -321,7 +321,7 @@
         }
     }
 
-    private void SelectTab(string tab, MouseEventArgs e)
+    private void SelectTab(string tab)
     {
         selectedTab = tab;
     }

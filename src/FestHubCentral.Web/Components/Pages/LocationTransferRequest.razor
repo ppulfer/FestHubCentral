@@ -15,7 +15,6 @@
 <div class="container">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="/location-dashboard">Location Dashboard</a></li>
             <li class="breadcrumb-item active">Request Transfer</li>
         </ol>
@@ -30,47 +29,54 @@
                 <div class="card-body">
                     @if (userLocation != null)
                     {
-                        <EditForm Model="newRequest" OnValidSubmit="HandleSubmit">
+                        <EditForm Model="newRequest" OnValidSubmit="HandleSubmit" OnInvalidSubmit="HandleInvalidSubmit">
                             <DataAnnotationsValidator />
 
-                            <div class="mb-3">
-                                <label class="form-label">Your Location</label>
-                                <input type="text" class="form-control" value="@userLocation.Name" readonly />
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">From (Staging Area)</label>
+                                    <input type="text" class="form-control" value="@fromLocationName" readonly />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">To (Your Location)</label>
+                                    <input type="text" class="form-control" value="@userLocation.Name" readonly />
+                                </div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="productId" class="form-label">Product <span class="text-danger">*</span></label>
-                                <select id="productId" class="form-select" @bind="newRequest.ProductId" required>
-                                    <option value="0">-- Select Product --</option>
-                                    @if (availableProducts?.Any() == true)
-                                    {
-                                        @foreach (var product in availableProducts)
+                                <label class="form-label">Product <span class="text-danger">*</span></label>
+                                @if (locationProducts?.Any() == true)
+                                {
+                                    <div class="btn-group-vertical w-100" role="group">
+                                        @foreach (var product in locationProducts)
                                         {
-                                            <option value="@product.Id">@product.Name (@product.Unit)</option>
+                                            <button type="button" class="btn btn-outline-primary text-start @(newRequest.ProductId == product.Id ? "active" : "")" @onclick="() => newRequest.ProductId = product.Id">
+                                                @product.Name (@product.Unit)
+                                            </button>
                                         }
-                                    }
-                                </select>
-                                <ValidationMessage For="() => newRequest.ProductId" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <small class="text-danger d-block">No products assigned to your location for this event.</small>
+                                }
+                                @if (newRequest.ProductId <= 0 && submitAttempted)
+                                {
+                                    <div class="invalid-feedback d-block">Please select a product</div>
+                                }
                             </div>
 
                             <div class="mb-3">
-                                <label for="toLocationId" class="form-label">Transfer To</label>
-                                <select id="toLocationId" class="form-select" @bind="newRequest.ToLocationId">
-                                    <option value="">-- Warehouse --</option>
-                                    @if (availableLocations?.Any() == true)
-                                    {
-                                        @foreach (var loc in availableLocations.Where(l => l.Id != userLocation.Id))
-                                        {
-                                            <option value="@loc.Id">@loc.Name</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="amount" class="form-label">Amount <span class="text-danger">*</span></label>
-                                <input id="amount" type="number" class="form-control" @bind="newRequest.Amount" min="1" required />
-                                <ValidationMessage For="() => newRequest.Amount" />
+                                <label class="form-label">Amount <span class="text-danger">*</span></label>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="button" class="btn btn-outline-secondary @(newRequest.Amount == 1 ? "active" : "")" @onclick="() => newRequest.Amount = 1">1</button>
+                                    <button type="button" class="btn btn-outline-secondary @(newRequest.Amount == 6 ? "active" : "")" @onclick="() => newRequest.Amount = 6">6</button>
+                                    <button type="button" class="btn btn-outline-secondary @(newRequest.Amount == 24 ? "active" : "")" @onclick="() => newRequest.Amount = 24">24</button>
+                                </div>
+                                @if (newRequest.Amount <= 0 && submitAttempted)
+                                {
+                                    <div class="invalid-feedback d-block">Please select an amount</div>
+                                }
                             </div>
 
                             <div class="mb-3">
@@ -133,12 +139,15 @@
 @code {
     private AuthenticationState? authState;
     private Location? userLocation;
-    private List<Product>? availableProducts;
-    private List<Location>? availableLocations;
+    private List<Product>? locationProducts;
     private TransferRequest newRequest = new();
     private string? errorMessage;
     private string? successMessage;
+    private string? debugMessage;
     private int upcomingEventYear;
+    private int stagingAreaLocationId;
+    private string? fromLocationName;
+    private bool submitAttempted = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -157,11 +166,20 @@
                 if (user?.LocationId.HasValue == true)
                 {
                     userLocation = await SettingsService.GetLocationByIdAsync(user.LocationId.Value);
-                    newRequest.FromLocationId = userLocation.Id;
+
+                    stagingAreaLocationId = 26;
+                    var stagingArea = await SettingsService.GetLocationByIdAsync(stagingAreaLocationId);
+                    fromLocationName = stagingArea?.Name ?? "Staging Area";
+
+                    newRequest.FromLocationId = stagingAreaLocationId;
+                    newRequest.ToLocationId = userLocation.Id;
                     newRequest.EventYear = upcomingEventYear;
 
-                    availableProducts = await SettingsService.GetAllProductsAsync();
-                    availableLocations = await SettingsService.GetAllLocationsAsync();
+                    var allProductLocations = await ProductLocationService.GetProductLocationsByLocationAsync(userLocation.Id, upcomingEventYear);
+                    var allProducts = await SettingsService.GetAllProductsAsync();
+
+                    var productIds = allProductLocations.Select(pl => pl.ProductId).ToList();
+                    locationProducts = allProducts.Where(p => productIds.Contains(p.Id)).ToList();
                 }
             }
         }
@@ -169,11 +187,26 @@
 
     private async Task HandleSubmit()
     {
+        errorMessage = null;
+        successMessage = null;
+
         try
         {
             if (userLocation == null)
             {
                 errorMessage = "Unable to determine your location.";
+                return;
+            }
+
+            if (newRequest.ProductId <= 0)
+            {
+                errorMessage = "Please select a valid product.";
+                return;
+            }
+
+            if (newRequest.Amount <= 0)
+            {
+                errorMessage = "Amount must be greater than 0.";
                 return;
             }
 
@@ -185,10 +218,13 @@
             }
 
             newRequest.RequestedByUserId = user.Id;
+
+            Console.WriteLine($"Submitting request: ProductId={newRequest.ProductId}, FromLocationId={newRequest.FromLocationId}, ToLocationId={newRequest.ToLocationId}, Amount={newRequest.Amount}, UserId={newRequest.RequestedByUserId}");
+
             await TransferRequestService.CreateRequestAsync(newRequest);
 
             successMessage = "Transfer request submitted successfully. An administrator will review it shortly.";
-            newRequest = new() { FromLocationId = userLocation.Id, EventYear = upcomingEventYear };
+            newRequest = new() { FromLocationId = stagingAreaLocationId, ToLocationId = userLocation.Id, EventYear = upcomingEventYear };
 
             await Task.Delay(2000);
             Navigation.NavigateTo("/location-dashboard");
@@ -196,6 +232,34 @@
         catch (Exception ex)
         {
             errorMessage = $"Error submitting request: {ex.Message}";
+            Console.WriteLine($"Error submitting request: {ex}");
         }
+    }
+
+    private void OnButtonClick()
+    {
+        debugMessage = $"Button clicked! ProductId={newRequest.ProductId}, Amount={newRequest.Amount}, FromLocationId={newRequest.FromLocationId}, ToLocationId={newRequest.ToLocationId}";
+        Console.WriteLine(debugMessage);
+    }
+
+    private void HandleInvalidSubmit()
+    {
+        submitAttempted = true;
+
+        if (newRequest.ProductId <= 0)
+        {
+            errorMessage = "Error: Product field is required.";
+        }
+        else if (newRequest.Amount <= 0)
+        {
+            errorMessage = "Error: Amount field must be greater than 0.";
+        }
+        else
+        {
+            errorMessage = "Error: Please fill in all required fields correctly.";
+        }
+
+        debugMessage = $"Form invalid! ProductId={newRequest.ProductId}, Amount={newRequest.Amount}";
+        Console.WriteLine("HandleInvalidSubmit called: " + debugMessage);
     }
 }

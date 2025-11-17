@@ -3,6 +3,7 @@
 @using FestHubCentral.Web.Components.Shared
 @using FestHubCentral.Web.Data.Models
 @using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ILocationService LocationService
 @inject IOrderService OrderService
 @inject IAlertService AlertService
@@ -10,6 +11,7 @@
 @inject ISettingsService SettingsService
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResources> Localizer
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
@@ -35,39 +37,26 @@
 
     <div class="dashboard-grid">
         <StatCard
-            Icon="💰"
-            Value="@totalSales.ToString("C")"
-            Label="@Localizer["Dashboard.TodaysSales"].Value"
-            SubText="@($"{orderCount} {Localizer["Dashboard.Orders"]}")"
-            CssClass="stat-card-success" />
-
-        <StatCard
-            Icon="🏪"
-            Value="@totalLocations.ToString()"
-            Label="@Localizer["Dashboard.TotalLocations"].Value"
-            SubText="" />
-
+            Icon="🚨"
+            Value="@pendingTransferRequestCount.ToString()"
+            Label="@Localizer["Dashboard.ActiveAlerts"].Value"
+            SubText="@Localizer["Dashboard.UnresolvedIssues"].Value"
+            CssClass="@(pendingTransferRequestCount > 0 ? "stat-card-danger" : "")" />
+        
         <StatCard
             Icon="📦"
             Value="@lowStockCount.ToString()"
             Label="@Localizer["Dashboard.LowStockItems"].Value"
             SubText="@Localizer["Dashboard.RequiresAttention"].Value"
             CssClass="@(lowStockCount > 0 ? "stat-card-warning" : "")" />
-
-        <StatCard
-            Icon="🚨"
-            Value="@alertCount.ToString()"
-            Label="@Localizer["Dashboard.ActiveAlerts"].Value"
-            SubText="@Localizer["Dashboard.UnresolvedIssues"].Value"
-            CssClass="@(alertCount > 0 ? "stat-card-danger" : "")" />
     </div>
 
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="section-card">
                 <h2 class="section-title">@Localizer["Dashboard.FestivalGroundsMap"].Value</h2>
                 <div class="vendor-grid">
-                    @for (int i = 1; i <= 30; i++)
+                    @for (int i = 1; i <= locations.Count; i++)
                     {
                         var spot = i;
                         var location = locations.FirstOrDefault(v => v.LocationSpot == spot);
@@ -86,49 +75,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="section-card">
-                <h2 class="section-title">@Localizer["Dashboard.ActiveAlerts"].Value</h2>
-                @if (alerts.Any())
-                {
-                    @foreach (var alert in alerts.Take(5))
-                    {
-                        <AlertCard Alert="@alert" OnResolve="ResolveAlert" />
-                    }
-                    @if (alerts.Count() > 5)
-                    {
-                        <a href="/alerts" class="btn btn-sm btn-outline-primary w-100">
-                            @Localizer["Dashboard.ViewAllAlerts", alerts.Count()]
-                        </a>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">@Localizer["Dashboard.NoActiveAlerts"].Value</p>
-                }
-            </div>
-
-            <div class="section-card mt-3">
-                <h2 class="section-title">@Localizer["Dashboard.TopSellingProducts"].Value</h2>
-                @if (topProducts.Any())
-                {
-                    <div class="list-group">
-                        @foreach (var product in topProducts.Take(5))
-                        {
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>@GetProductName(product)</span>
-                                <span class="badge bg-primary rounded-pill">@GetProductQuantity(product)</span>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted">@Localizer["Dashboard.NoSalesData"].Value</p>
-                }
-            </div>
-        </div>
     </div>
 </div>
 
@@ -136,17 +82,23 @@
     private HubConnection? hubConnection;
     private Data.Models.Settings? brandingSettings;
     private List<Data.Models.Location> locations = new();
-    private List<Data.Models.Alert> alerts = new();
-    private List<object> topProducts = new();
-    private decimal totalSales = 0;
-    private int orderCount = 0;
-    private int totalLocations = 0;
     private int lowStockCount = 0;
-    private int alertCount = 0;
+    private int pendingTransferRequestCount = 0;
     private readonly SemaphoreSlim _loadDataSemaphore = new(1, 1);
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState?.User?.Identity?.IsAuthenticated == true)
+        {
+            var hasLocationRole = authState.User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value == "Location";
+            if (hasLocationRole)
+            {
+                Navigation.NavigateTo("/location-dashboard", replace: true);
+                return;
+            }
+        }
+
         brandingSettings = await SettingsService.GetSettingsAsync();
         await LoadData();
         await InitializeSignalR();
@@ -158,22 +110,8 @@
         try
         {
             locations = (await LocationService.GetAllLocationsAsync()).ToList();
-            alerts = (await AlertService.GetUnresolvedAlertsAsync()).ToList();
-
-            var today = DateTime.UtcNow.Date;
-            var todayUtc = DateTime.SpecifyKind(today, DateTimeKind.Utc);
-
-            topProducts = (await OrderService.GetTopSellingProductsAsync(10, todayUtc)).ToList();
-            totalSales = await OrderService.GetTotalSalesByDateAsync(todayUtc);
-            var allOrders = await OrderService.GetOrdersByDateRangeAsync(todayUtc, todayUtc.AddDays(1));
-            orderCount = allOrders.Count();
-
-            totalLocations = locations.Count;
-
             var lowStockItems = await InventoryService.GetLowStockItemsAsync();
             lowStockCount = lowStockItems.Count();
-
-            alertCount = alerts.Count;
         }
         finally
         {
@@ -221,26 +159,6 @@
         {
             Navigation.NavigateTo($"/locations/{locationId}");
         }
-    }
-
-    private async Task ResolveAlert(int alertId)
-    {
-        await AlertService.ResolveAlertAsync(alertId, "Dashboard User");
-        await LoadData();
-    }
-
-    private string GetProductName(object product)
-    {
-        var type = product.GetType();
-        var nameProp = type.GetProperty("ProductName");
-        return nameProp?.GetValue(product)?.ToString() ?? "";
-    }
-
-    private int GetProductQuantity(object product)
-    {
-        var type = product.GetType();
-        var qtyProp = type.GetProperty("TotalQuantity");
-        return (int)(qtyProp?.GetValue(product) ?? 0);
     }
 
     public async ValueTask DisposeAsync()

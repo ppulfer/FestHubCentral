@@ -34,16 +34,26 @@
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <StatCard Icon="📦" Value="@totalProducts.ToString()" Label="Total Products" />
             </div>
-            <div class="col-md-3">
-                <StatCard Icon="📊" Value="@totalAmount.ToString()" Label="Total Planned Amount" />
+            <div class="col-md-4">
+                <div class="section-card h-100">
+                    <h6 class="mb-3">💰 Inventory Value</h6>
+                    <div class="mb-2">
+                        <small class="text-muted">Purchase Value:</small>
+                        <div class="h6 mb-2">@totalPurchaseValue.ToString("C")</div>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Selling Value:</small>
+                        <div class="h6 mb-2">@totalSellingValue.ToString("C")</div>
+                    </div>
+                    <hr class="my-2" />
+                    <small class="text-muted">Profit:</small>
+                    <div class="h5 @(totalProfit > 0 ? "text-success" : "text-danger")">@totalProfit.ToString("C")</div>
+                </div>
             </div>
-            <div class="col-md-3">
-                <StatCard Icon="🚚" Value="@totalInitialDelivery.ToString()" Label="Initial Delivery" />
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="section-card h-100">
                     <label class="form-label">Event Year</label>
                     <select class="form-select" @bind="selectedEventYear" @bind:after="LoadForecasts">
@@ -59,7 +69,7 @@
         <div class="section-card">
             <h3 class="section-title">Product for @selectedEventYear</h3>
 
-            @if (forecasts.Any())
+            @if (productLocations.Any())
             {
                 <div class="table-responsive">
                     <table class="table table-hover">
@@ -67,9 +77,9 @@
                             <tr>
                                 <th>Product</th>
                                 <th>Supplier</th>
+                                <th>Total transferred</th>
                                 <th>Planned Amount</th>
                                 <th>Initial Delivery</th>
-                                <th>Current Stock</th>
                                 <th>Trend</th>
                                 <th>Notes</th>
                                 <th>Actions</th>
@@ -84,9 +94,9 @@
                                         <small class="text-muted">@forecast.Product.Description</small>
                                     </td>
                                     <td>@forecast.Product.Supplier.Name</td>
+                                    <td>@GetCurrentStockDisplay(forecast)</td>
                                     <td><span class="badge bg-primary">@forecast.PlannedAmount</span></td>
                                     <td><span class="badge bg-success">@forecast.InitialDelivery</span></td>
-                                    <td>@GetCurrentStockDisplay(forecast)</td>
                                     <td>@GetTrendDisplay(forecast)</td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(forecast.Notes))
@@ -116,7 +126,7 @@
 
                 <div class="mt-3">
                     <Pagination CurrentPage="@currentPage"
-                                TotalItems="@forecasts.Count"
+                                TotalItems="@productLocations.Count"
                                 PageSize="@pageSize"
                                 OnPageChange="@HandlePageChange" />
                 </div>
@@ -311,7 +321,7 @@
     [Parameter] public int LocationId { get; set; }
 
     private Location? location;
-    private List<ProductLocation> forecasts = new();
+    private List<ProductLocation> productLocations = new();
     private List<InventoryTransfer> transfers = new();
     private Dictionary<int, int> previousYearAmounts = new();
     private Dictionary<int, int> productStockCalculations = new();
@@ -322,6 +332,9 @@
     private int totalProducts = 0;
     private int totalAmount = 0;
     private int totalInitialDelivery = 0;
+    private decimal totalPurchaseValue = 0;
+    private decimal totalSellingValue = 0;
+    private decimal totalProfit = 0;
 
     private bool showForecastModal = false;
     private ProductLocation? editingForecast;
@@ -358,12 +371,30 @@
 
     private async Task LoadForecasts()
     {
-        forecasts = (await ProductLocationService.GetProductLocationsByLocationAsync(LocationId, selectedEventYear)).ToList();
+        productLocations = (await ProductLocationService.GetProductLocationsByLocationAsync(LocationId, selectedEventYear)).ToList();
         transfers = (await TransferService.GetTransfersByLocationAndYearAsync(LocationId, selectedEventYear)).ToList();
 
-        totalProducts = forecasts.Count;
-        totalAmount = forecasts.Sum(f => f.PlannedAmount);
-        totalInitialDelivery = forecasts.Sum(f => f.InitialDelivery);
+        totalProducts = productLocations.Count;
+        totalAmount = productLocations.Sum(f => f.PlannedAmount);
+        totalInitialDelivery = productLocations.Sum(f => f.InitialDelivery);
+
+        CalculateCurrentStock();
+
+        totalPurchaseValue = 0;
+        totalSellingValue = 0;
+        totalProfit = 0;
+
+        foreach (var pl in productLocations)
+        {
+            var productPrice = pl.Product?.ProductEventPrices?.FirstOrDefault(p => p.EventYear == selectedEventYear);
+            if (productPrice != null && productStockCalculations.TryGetValue(pl.ProductId, out var currentStock))
+            {
+                totalPurchaseValue += currentStock * productPrice.PurchasePrice;
+                totalSellingValue += currentStock * productPrice.SellingPrice;
+            }
+        }
+
+        totalProfit = totalSellingValue - totalPurchaseValue;
 
         previousYearAmounts.Clear();
         var previousYear = availableYears.Where(y => y < selectedEventYear).OrderByDescending(y => y).FirstOrDefault();
@@ -376,8 +407,6 @@
             }
         }
 
-        CalculateCurrentStock();
-
         currentPage = 1;
     }
 
@@ -385,7 +414,7 @@
     {
         productStockCalculations.Clear();
 
-        foreach (var forecast in forecasts)
+        foreach (var forecast in productLocations)
         {
             var currentStock = forecast.InitialDelivery;
 
@@ -484,7 +513,7 @@
 
     private IEnumerable<ProductLocation> GetPagedForecasts()
     {
-        return forecasts
+        return productLocations
             .Skip((currentPage - 1) * pageSize)
             .Take(pageSize);
     }
@@ -519,14 +548,14 @@
         }
     }
 
-    private MarkupString GetCurrentStockDisplay(ProductLocation forecast)
+    private MarkupString GetCurrentStockDisplay(ProductLocation productLocation)
     {
-        if (!productStockCalculations.TryGetValue(forecast.ProductId, out var currentStock))
+        if (!productStockCalculations.TryGetValue(productLocation.ProductId, out var currentStock))
         {
             return new MarkupString("<span class='text-muted'>-</span>");
         }
 
-        var stockPercentage = forecast.PlannedAmount > 0 ? (currentStock * 100.0 / forecast.PlannedAmount) : 0;
+        var stockPercentage = productLocation.PlannedAmount > 0 ? (currentStock * 100.0 / productLocation.PlannedAmount) : 0;
 
         string badgeClass = "bg-info";
         if (stockPercentage < 25)
@@ -535,7 +564,7 @@
             badgeClass = "bg-warning";
         else if (stockPercentage < 100)
             badgeClass = "bg-primary";
-        else if (currentStock >= forecast.PlannedAmount)
+        else if (currentStock >= productLocation.PlannedAmount)
             badgeClass = "bg-success";
 
         return new MarkupString($"<span class='badge {badgeClass}'>{currentStock} ({stockPercentage:F0}%)</span>");

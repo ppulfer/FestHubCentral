@@ -44,7 +44,6 @@ public class TransferRequest
 
     public string? RejectionReason { get; set; }
 
-    [Required]
     public string RequestedByUserId { get; set; } = string.Empty;
     public ApplicationUser RequestedByUser { get; set; } = null!;
 

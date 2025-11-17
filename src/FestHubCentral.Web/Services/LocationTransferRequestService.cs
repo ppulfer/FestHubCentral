@@ -43,7 +43,7 @@ public class LocationTransferRequestService : ILocationTransferRequestService
     public async Task<IEnumerable<TransferRequest>> GetRequestsByLocationAsync(int locationId)
     {
         return await _context.TransferRequests
-            .Where(tr => tr.FromLocationId == locationId)
+            .Where(tr => tr.ToLocationId == locationId)
             .Include(tr => tr.Product)
             .Include(tr => tr.FromLocation)
             .Include(tr => tr.ToLocation)
@@ -55,7 +55,7 @@ public class LocationTransferRequestService : ILocationTransferRequestService
     public async Task<IEnumerable<TransferRequest>> GetRequestsByLocationAndYearAsync(int locationId, int eventYear)
     {
         return await _context.TransferRequests
-            .Where(tr => tr.FromLocationId == locationId && tr.EventYear == eventYear)
+            .Where(tr => tr.ToLocationId == locationId && tr.EventYear == eventYear)
             .Include(tr => tr.Product)
             .Include(tr => tr.FromLocation)
             .Include(tr => tr.ToLocation)
