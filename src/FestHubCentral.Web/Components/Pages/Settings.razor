@@ -1,7 +1,10 @@
 @page "/settings"
 @using FestHubCentral.Web.Services.Interfaces
 @using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Data
+@using Microsoft.EntityFrameworkCore
 @inject ISettingsService SettingsService
+@inject ApplicationDbContext DbContext
 @inject IStringLocalizer<SharedResources> Localizer
 @rendermode InteractiveServer
 
@@ -32,10 +35,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">@Localizer["Settings.FestivalYear"].Value</label>
-                            <InputNumber @bind-Value="settings.UpcomingEventYear" class="form-control" placeholder="2025" />
-                            <small class="form-text text-muted">@Localizer["Settings.FestivalYearHelp"].Value</small>
-                            <ValidationMessage For="@(() => settings.UpcomingEventYear)" />
+                            <label class="form-label">@Localizer["Settings.CurrentEvent"].Value</label>
+                            <InputSelect @bind-Value="settings.CurrentEventYear" class="form-select">
+                                @foreach (var evt in availableEvents)
+                                {
+                                    <option value="@evt.Year">@evt.Name (@evt.Year)</option>
+                                }
+                            </InputSelect>
+                            <small class="form-text text-muted">@Localizer["Settings.CurrentEventHelp"].Value</small>
+                            <ValidationMessage For="@(() => settings.CurrentEventYear)" />
                         </div>
 
                         <div class="mb-3">
@@ -121,7 +129,7 @@
                     {
                         <img src="@settings.LogoPath" alt="Logo" class="preview-logo mb-3" />
                     }
-                    <h3 style="color: var(--primary-color);">@(settings?.FestivalName ?? "Festival Name") @(settings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</h3>
+                    <h3 style="color: var(--primary-color);">@(settings?.FestivalName ?? "Festival Name") @(settings?.CurrentEventYear ?? DateTime.UtcNow.Year)</h3>
                     @if (!string.IsNullOrEmpty(settings?.Tagline))
                     {
                         <p class="text-muted">@settings.Tagline</p>
@@ -161,6 +169,7 @@
 
 @code {
     private Data.Models.Settings? settings;
+    private List<Event> availableEvents = new();
     private IBrowserFile? selectedFile;
     private bool isSaving = false;
     private string? saveMessage;
@@ -169,6 +178,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadSettings();
+        await LoadAvailableEvents();
     }
 
     private async Task LoadSettings()
@@ -176,6 +186,13 @@
         settings = await SettingsService.GetSettingsAsync();
         saveMessage = null;
         uploadMessage = null;
+    }
+
+    private async Task LoadAvailableEvents()
+    {
+        availableEvents = await DbContext.Events
+            .OrderByDescending(e => e.Year)
+            .ToListAsync();
     }
 
     private void HandleFileSelected(InputFileChangeEventArgs e)

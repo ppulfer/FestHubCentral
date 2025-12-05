@@ -24,7 +24,7 @@ public class Event
 
     public DateTime CreatedAt { get; set; }
 
-    public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
     public ICollection<ProductEventPrice> ProductEventPrices { get; set; } = new List<ProductEventPrice>();
+    public ICollection<EventLocation> EventLocations { get; set; } = new List<EventLocation>();
 }

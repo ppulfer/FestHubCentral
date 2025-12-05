@@ -14,8 +14,9 @@ public class Location
     [MaxLength(50)]
     public string Category { get; set; } = string.Empty;
 
-    [Range(1, 100)]
-    public int LocationSpot { get; set; }
+    public double? Latitude { get; set; }
+
+    public double? Longitude { get; set; }
 
     [MaxLength(100)]
     public string? ContactPerson { get; set; }
@@ -29,6 +30,6 @@ public class Location
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
-    public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ApplicationUser? LocationUser { get; set; }
+    public ICollection<EventLocation> EventLocations { get; set; } = new List<EventLocation>();
 }

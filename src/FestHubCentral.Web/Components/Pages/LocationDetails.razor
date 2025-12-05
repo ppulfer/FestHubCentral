@@ -24,7 +24,7 @@
                     </ol>
                 </nav>
                 <h1>🏪 @location.Name</h1>
-                <p class="text-muted">Location Spot @location.LocationSpot • @location.Category</p>
+                <p class="text-muted">@location.Category</p>
             </div>
             <div class="col-auto">
                 <button class="btn btn-primary" @onclick="ShowAddForecastForm">
@@ -327,7 +327,7 @@
     private Dictionary<int, int> productStockCalculations = new();
     private List<Product> availableProducts = new();
     private List<int> availableYears = new();
-    private int selectedEventYear = 2024;
+    private int selectedEventYear;
 
     private int totalProducts = 0;
     private int totalAmount = 0;
@@ -353,9 +353,9 @@
         }
 
         var settings = await SettingsService.GetSettingsAsync();
-        if (settings?.UpcomingEvent != null)
+        if (settings?.CurrentEvent != null)
         {
-            selectedEventYear = settings.UpcomingEvent.Year;
+            selectedEventYear = settings.CurrentEvent.Year;
         }
 
         availableYears = new List<int> { 2024, 2026 };

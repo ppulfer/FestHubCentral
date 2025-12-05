@@ -26,7 +26,6 @@ public class Product
     public Supplier Supplier { get; set; } = null!;
 
     public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
-    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<ProductEventPrice> ProductEventPrices { get; set; } = new List<ProductEventPrice>();
 
     public DateTime CreatedAt { get; set; }

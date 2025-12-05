@@ -5,7 +5,6 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.AspNetCore.Components.Authorization
 @inject ILocationService LocationService
-@inject IOrderService OrderService
 @inject IAlertService AlertService
 @inject IInventoryService InventoryService
 @inject ISettingsService SettingsService
@@ -15,7 +14,7 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>@Localizer["Nav.Dashboard"].Value - @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</PageTitle>
+<PageTitle>@Localizer["Nav.Dashboard"].Value - @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.CurrentEventYear ?? DateTime.UtcNow.Year)</PageTitle>
 
 <div class="container-fluid">
     <div class="row mb-4">
@@ -29,7 +28,7 @@
                 {
                     <span>🎪 </span>
                 }
-                @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.UpcomingEventYear ?? DateTime.UtcNow.Year) @Localizer["Nav.Dashboard"].Value
+                @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.CurrentEventYear ?? DateTime.UtcNow.Year) @Localizer["Nav.Dashboard"].Value
             </h1>
             <p class="text-muted">@(brandingSettings?.Tagline ?? Localizer["Dashboard.Tagline"].Value)</p>
         </div>
@@ -56,20 +55,10 @@
             <div class="section-card">
                 <h2 class="section-title">@Localizer["Dashboard.FestivalGroundsMap"].Value</h2>
                 <div class="vendor-grid">
-                    @for (int i = 1; i <= locations.Count; i++)
+                    @foreach (var location in locations.OrderBy(l => l.Name))
                     {
-                        var spot = i;
-                        var location = locations.FirstOrDefault(v => v.LocationSpot == spot);
                         <div class="vendor-spot @GetSpotClass(location)" @onclick="() => NavigateToLocation(location?.Id)">
-                            <div class="vendor-spot-number">@Localizer["Dashboard.Spot"].Value @spot</div>
-                            @if (location != null)
-                            {
-                                <div class="vendor-name">@location.Name</div>
-                            }
-                            else
-                            {
-                                <div class="text-muted">@Localizer["Dashboard.Available"].Value</div>
-                            }
+                            <div class="vendor-name">@location.Name</div>
                         </div>
                     }
                 </div>
@@ -109,9 +98,9 @@
         await _loadDataSemaphore.WaitAsync();
         try
         {
-            locations = (await LocationService.GetAllLocationsAsync()).ToList();
-            var lowStockItems = await InventoryService.GetLowStockItemsAsync();
-            lowStockCount = lowStockItems.Count();
+            var currentEventYear = brandingSettings?.CurrentEventYear ?? DateTime.UtcNow.Year;
+            locations = (await LocationService.GetLocationsByEventYearAsync(currentEventYear)).ToList();
+            lowStockCount = 0;
         }
         finally
         {

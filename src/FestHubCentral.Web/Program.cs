@@ -48,10 +48,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();
 builder.Services.AddScoped<ILocationTransferRequestService, LocationTransferRequestService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();

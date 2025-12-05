@@ -4,6 +4,7 @@
 @using FestHubCentral.Web.Components.Shared
 @inject ICashRegisterService CashRegisterService
 @inject ILocationService LocationService
+@inject ISettingsService SettingsService
 @inject IStringLocalizer<SharedResources> Localizer
 @rendermode InteractiveServer
 
@@ -46,7 +47,7 @@
                             <option value="0">Select Location</option>
                             @foreach (var location in availableLocations)
                             {
-                                <option value="@location.Id">@location.Name (Spot @location.LocationSpot)</option>
+                                <option value="@location.Id">@location.Name</option>
                             }
                         </select>
                     </div>
@@ -245,7 +246,10 @@
         allRegisters = (await CashRegisterService.GetAllCashRegistersAsync()).ToList();
         openRegisters = (await CashRegisterService.GetOpenCashRegistersAsync()).ToList();
         closedRegisters = allRegisters.Where(r => !r.IsOpen && r.ClosedAt?.Date == DateTime.UtcNow.Date).ToList();
-        locations = (await LocationService.GetAllLocationsAsync()).ToList();
+
+        var settings = await SettingsService.GetSettingsAsync();
+        var currentEventYear = settings?.CurrentEventYear ?? DateTime.UtcNow.Year;
+        locations = (await LocationService.GetLocationsByEventYearAsync(currentEventYear)).ToList();
 
         var openLocationIds = openRegisters.Select(r => r.LocationId).ToHashSet();
         availableLocations = locations.Where(v => !openLocationIds.Contains(v.Id)).ToList();

@@ -156,7 +156,7 @@
         if (authState?.User?.Identity?.IsAuthenticated == true)
         {
             var settings = await SettingsService.GetSettingsAsync();
-            upcomingEventYear = settings?.UpcomingEventYear ?? DateTime.Now.Year;
+            upcomingEventYear = settings?.CurrentEventYear ?? DateTime.Now.Year;
 
             var userEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 

@@ -3,6 +3,7 @@ using System;
 using FestHubCentral.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FestHubCentral.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204234145_RemoveInventoryStockFields")]
+    partial class RemoveInventoryStockFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -284,281 +287,6 @@ namespace FestHubCentral.Web.Migrations
                         });
                 });
 
-            modelBuilder.Entity("FestHubCentral.Web.Data.Models.EventLocation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("EventYear")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("LocationId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("EventYear", "LocationId")
-                        .IsUnique();
-
-                    b.ToTable("EventLocations");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 15
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 15
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 16
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 16
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 17
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 17
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 18
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 18
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 19
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 19
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 20
-                        },
-                        new
-                        {
-                            Id = 12,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 20
-                        },
-                        new
-                        {
-                            Id = 13,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 21
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 21
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 22
-                        },
-                        new
-                        {
-                            Id = 16,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 22
-                        },
-                        new
-                        {
-                            Id = 17,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 23
-                        },
-                        new
-                        {
-                            Id = 18,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 23
-                        },
-                        new
-                        {
-                            Id = 19,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 24
-                        },
-                        new
-                        {
-                            Id = 20,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 24
-                        },
-                        new
-                        {
-                            Id = 21,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 25
-                        },
-                        new
-                        {
-                            Id = 22,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 25
-                        },
-                        new
-                        {
-                            Id = 23,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 26
-                        },
-                        new
-                        {
-                            Id = 24,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 26
-                        },
-                        new
-                        {
-                            Id = 25,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 27
-                        },
-                        new
-                        {
-                            Id = 26,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 27
-                        },
-                        new
-                        {
-                            Id = 27,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 29
-                        },
-                        new
-                        {
-                            Id = 28,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 29
-                        },
-                        new
-                        {
-                            Id = 29,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2024,
-                            IsActive = true,
-                            LocationId = 30
-                        },
-                        new
-                        {
-                            Id = 30,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EventYear = 2026,
-                            IsActive = true,
-                            LocationId = 30
-                        });
-                });
-
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Inventory", b =>
                 {
                     b.Property<int>("Id")
@@ -668,11 +396,8 @@ namespace FestHubCentral.Web.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double precision");
+                    b.Property<int>("LocationSpot")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -684,6 +409,9 @@ namespace FestHubCentral.Web.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LocationSpot")
+                        .IsUnique();
+
                     b.ToTable("Locations");
 
                     b.HasData(
@@ -692,6 +420,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 15,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 1,
                             Name = "Wiilaube"
                         },
                         new
@@ -699,6 +428,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 16,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 2,
                             Name = "Raclett-Zelt"
                         },
                         new
@@ -706,6 +436,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 17,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 3,
                             Name = "Winzerlounge"
                         },
                         new
@@ -713,6 +444,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 18,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 4,
                             Name = "Wümmetkafi"
                         },
                         new
@@ -720,6 +452,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 19,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 5,
                             Name = "Wurst/Getränke Kirche"
                         },
                         new
@@ -727,6 +460,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 20,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 6,
                             Name = "Wurst/Getränke Ackersteinstrasse"
                         },
                         new
@@ -734,6 +468,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 21,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 7,
                             Name = "Bar Ackersteinstrasse"
                         },
                         new
@@ -741,6 +476,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 22,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 8,
                             Name = "Bar Mühlehalde"
                         },
                         new
@@ -748,6 +484,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 23,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 9,
                             Name = "Kiwanis"
                         },
                         new
@@ -755,6 +492,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 24,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 10,
                             Name = "Rebhüsli"
                         },
                         new
@@ -762,6 +500,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 25,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 11,
                             Name = "Fischstand"
                         },
                         new
@@ -769,6 +508,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 26,
                             Category = "Staging Area",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 12,
                             Name = "OK-Ackerstein"
                         },
                         new
@@ -776,6 +516,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 27,
                             Category = "Staging Area",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 13,
                             Name = "OK-Kirche"
                         },
                         new
@@ -783,6 +524,7 @@ namespace FestHubCentral.Web.Migrations
                             Id = 29,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 15,
                             Name = "Crêpes Stand"
                         },
                         new
@@ -790,8 +532,90 @@ namespace FestHubCentral.Web.Migrations
                             Id = 30,
                             Category = "Vendor",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LocationSpot = 16,
                             Name = "Suuserwagen"
                         });
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EventYear")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OrderNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventYear");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Product", b =>
@@ -938,9 +762,6 @@ namespace FestHubCentral.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int>("CurrentEventYear")
-                        .HasColumnType("integer");
-
                     b.Property<string>("FestivalName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -964,6 +785,9 @@ namespace FestHubCentral.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("UpcomingEventYear")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -973,7 +797,7 @@ namespace FestHubCentral.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentEventYear");
+                    b.HasIndex("UpcomingEventYear");
 
                     b.ToTable("Settings");
 
@@ -982,11 +806,11 @@ namespace FestHubCentral.Web.Migrations
                         {
                             Id = 1,
                             AccentColor = "#ec4899",
-                            CurrentEventYear = 2026,
                             FestivalName = "FestHub Central",
                             PrimaryColor = "#6366f1",
                             SecondaryColor = "#8b5cf6",
                             Tagline = "Real-time festival gastronomy management",
+                            UpcomingEventYear = 2026,
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
@@ -1324,25 +1148,6 @@ namespace FestHubCentral.Web.Migrations
                     b.Navigation("Location");
                 });
 
-            modelBuilder.Entity("FestHubCentral.Web.Data.Models.EventLocation", b =>
-                {
-                    b.HasOne("FestHubCentral.Web.Data.Models.Event", "Event")
-                        .WithMany("EventLocations")
-                        .HasForeignKey("EventYear")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "Location")
-                        .WithMany("EventLocations")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("Location");
-                });
-
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Inventory", b =>
                 {
                     b.HasOne("FestHubCentral.Web.Data.Models.Event", "Event")
@@ -1400,6 +1205,44 @@ namespace FestHubCentral.Web.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("ToLocation");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Order", b =>
+                {
+                    b.HasOne("FestHubCentral.Web.Data.Models.Event", "Event")
+                        .WithMany("Orders")
+                        .HasForeignKey("EventYear")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FestHubCentral.Web.Data.Models.Location", "Location")
+                        .WithMany("Orders")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.OrderItem", b =>
+                {
+                    b.HasOne("FestHubCentral.Web.Data.Models.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FestHubCentral.Web.Data.Models.Product", "Product")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Product", b =>
@@ -1461,13 +1304,13 @@ namespace FestHubCentral.Web.Migrations
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Settings", b =>
                 {
-                    b.HasOne("FestHubCentral.Web.Data.Models.Event", "CurrentEvent")
+                    b.HasOne("FestHubCentral.Web.Data.Models.Event", "UpcomingEvent")
                         .WithMany()
-                        .HasForeignKey("CurrentEventYear")
+                        .HasForeignKey("UpcomingEventYear")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CurrentEvent");
+                    b.Navigation("UpcomingEvent");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.TransferRequest", b =>
@@ -1579,23 +1422,30 @@ namespace FestHubCentral.Web.Migrations
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Event", b =>
                 {
-                    b.Navigation("EventLocations");
-
                     b.Navigation("Inventories");
+
+                    b.Navigation("Orders");
 
                     b.Navigation("ProductEventPrices");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Location", b =>
                 {
-                    b.Navigation("EventLocations");
-
                     b.Navigation("LocationUser");
+
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("FestHubCentral.Web.Data.Models.Order", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("FestHubCentral.Web.Data.Models.Product", b =>
                 {
                     b.Navigation("Inventories");
+
+                    b.Navigation("OrderItems");
 
                     b.Navigation("ProductEventPrices");
                 });

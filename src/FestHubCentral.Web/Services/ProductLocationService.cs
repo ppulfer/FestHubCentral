@@ -21,7 +21,7 @@ public class ProductLocationService : IProductLocationService
                 .ThenInclude(p => p.Supplier)
             .Include(f => f.Location)
             .Include(f => f.Event)
-            .OrderBy(f => f.Location.LocationSpot)
+            .OrderBy(f => f.Location.Name)
             .ThenBy(f => f.Product.Name)
             .ToListAsync();
     }
@@ -33,7 +33,7 @@ public class ProductLocationService : IProductLocationService
                 .ThenInclude(p => p.Supplier)
             .Include(f => f.Location)
             .Where(f => f.EventYear == eventYear)
-            .OrderBy(f => f.Location.LocationSpot)
+            .OrderBy(f => f.Location.Name)
             .ThenBy(f => f.Product.Name)
             .ToListAsync();
     }

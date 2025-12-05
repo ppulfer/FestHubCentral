@@ -77,16 +77,6 @@ public class CashRegisterService : ICashRegisterService
         var cashRegister = await _context.CashRegisters.FindAsync(cashRegisterId);
         if (cashRegister == null) return 0;
 
-        var orders = await _context.Orders
-            .Where(o => o.LocationId == cashRegister.LocationId
-                && o.OrderDate >= cashRegister.OpenedAt
-                && (!cashRegister.ClosedAt.HasValue || o.OrderDate <= cashRegister.ClosedAt.Value))
-            .ToListAsync();
-
-        cashRegister.CashSales = orders.Where(o => o.PaymentMethod == "Cash").Sum(o => o.TotalAmount);
-        cashRegister.CardSales = orders.Where(o => o.PaymentMethod == "Card").Sum(o => o.TotalAmount);
-        cashRegister.TokenSales = orders.Where(o => o.PaymentMethod == "FestivalToken").Sum(o => o.TotalAmount);
-
         return cashRegister.OpeningAmount + cashRegister.CashSales;
     }
 }

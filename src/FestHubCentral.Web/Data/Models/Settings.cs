@@ -26,8 +26,8 @@ public class Settings
     public string? Tagline { get; set; }
 
     [Required]
-    public int UpcomingEventYear { get; set; } = DateTime.UtcNow.Year;
-    public Event UpcomingEvent { get; set; } = null!;
+    public int CurrentEventYear { get; set; } = DateTime.UtcNow.Year;
+    public Event CurrentEvent { get; set; } = null!;
 
     public DateTime UpdatedAt { get; set; }
 

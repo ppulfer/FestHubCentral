@@ -17,7 +17,7 @@
         @if (userLocation != null)
         {
             <h1>@userLocation.Name</h1>
-            <p class="text-muted">Spot @userLocation.LocationSpot - @userLocation.Category</p>
+            <p class="text-muted">@userLocation.Category</p>
 
             <div class="row mb-4">
                 <div class="col-md-3">
@@ -188,7 +188,7 @@
         if (authState?.User?.Identity?.IsAuthenticated == true)
         {
             var settings = await SettingsService.GetSettingsAsync();
-            upcomingEventYear = settings?.UpcomingEventYear ?? DateTime.Now.Year;
+            upcomingEventYear = settings?.CurrentEventYear ?? DateTime.Now.Year;
 
             var userEmail = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 

@@ -8,14 +8,14 @@ namespace FestHubCentral.Web.Services;
 public class InventoryService : IInventoryService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IAlertService _alertService;
     private readonly ISettingsService _settingsService;
+    private readonly IProductService _productService;
 
-    public InventoryService(ApplicationDbContext context, IAlertService alertService, ISettingsService settingsService)
+    public InventoryService(ApplicationDbContext context, ISettingsService settingsService, IProductService productService)
     {
         _context = context;
-        _alertService = alertService;
         _settingsService = settingsService;
+        _productService = productService;
     }
 
     public async Task<IEnumerable<Inventory>> GetAllInventoryAsync()
@@ -24,17 +24,16 @@ public class InventoryService : IInventoryService
         return await _context.Inventories
             .Include(i => i.Product)
                 .ThenInclude(p => p.Supplier)
-            .Where(i => i.EventYear == settings.UpcomingEventYear)
+            .Where(i => i.EventYear == settings.CurrentEventYear)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Inventory>> GetLowStockItemsAsync()
+    public async Task<IEnumerable<Inventory>> GetInventoryByYearAsync(int year)
     {
-        var settings = await _settingsService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
                 .ThenInclude(p => p.Supplier)
-            .Where(i => i.CurrentStock <= i.MinimumStock && i.EventYear == settings.UpcomingEventYear)
+            .Where(i => i.EventYear == year)
             .ToListAsync();
     }
 
@@ -43,16 +42,31 @@ public class InventoryService : IInventoryService
         var settings = await _settingsService.GetSettingsAsync();
         return await _context.Inventories
             .Include(i => i.Product)
-            .Where(i => i.EventYear == settings.UpcomingEventYear)
+            .Where(i => i.EventYear == settings.CurrentEventYear)
             .FirstOrDefaultAsync(i => i.ProductId == productId);
     }
 
     public async Task<Inventory> CreateInventoryAsync(Inventory inventory)
     {
         var settings = await _settingsService.GetSettingsAsync();
-        inventory.EventYear = settings.UpcomingEventYear;
+        inventory.EventYear = settings.CurrentEventYear;
         inventory.CreatedAt = DateTime.UtcNow;
-        inventory.LastRestocked = DateTime.UtcNow;
+        _context.Inventories.Add(inventory);
+        await _context.SaveChangesAsync();
+        return inventory;
+    }
+
+    public async Task<Inventory> CreateInventoryWithProductAsync(Product product, int eventYear)
+    {
+        var createdProduct = await _productService.CreateProductAsync(product);
+
+        var inventory = new Inventory
+        {
+            ProductId = createdProduct.Id,
+            EventYear = eventYear,
+            CreatedAt = DateTime.UtcNow
+        };
+
         _context.Inventories.Add(inventory);
         await _context.SaveChangesAsync();
         return inventory;
@@ -66,61 +80,19 @@ public class InventoryService : IInventoryService
         return inventory;
     }
 
-    public async Task RestockAsync(int productId, int quantity)
+    public async Task DeleteInventoryAsync(int id)
     {
-        var inventory = await GetInventoryByProductIdAsync(productId);
+        var inventory = await _context.Inventories.FindAsync(id);
         if (inventory != null)
         {
-            inventory.CurrentStock += quantity;
-            inventory.LastRestocked = DateTime.UtcNow;
-            inventory.UpdatedAt = DateTime.UtcNow;
+            var productId = inventory.ProductId;
+            _context.Inventories.Remove(inventory);
             await _context.SaveChangesAsync();
 
-            var product = await _context.Products.FindAsync(productId);
-            if (product != null && inventory.CurrentStock > inventory.MinimumStock)
+            if (await _productService.CanDeleteProductAsync(productId))
             {
-                await _alertService.ResolveAlertsByProductAsync(productId);
+                await _productService.DeleteProductAsync(productId);
             }
         }
-    }
-
-    public async Task DecrementStockAsync(int productId, int quantity)
-    {
-        var inventory = await GetInventoryByProductIdAsync(productId);
-        if (inventory != null)
-        {
-            inventory.CurrentStock -= quantity;
-            inventory.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            if (inventory.CurrentStock <= inventory.MinimumStock)
-            {
-                var product = await _context.Products
-                    .Include(p => p.Supplier)
-                    .FirstOrDefaultAsync(p => p.Id == productId);
-
-                if (product != null)
-                {
-                    var severity = inventory.CurrentStock <= (inventory.MinimumStock / 2)
-                        ? "Critical"
-                        : "Warning";
-
-                    await _alertService.CreateAlertAsync(new Alert
-                    {
-                        Type = "LowInventory",
-                        Severity = severity,
-                        Title = "Low Stock Alert",
-                        Message = $"{product.Name} from {product.Supplier.Name} is running low. Current stock: {inventory.CurrentStock}, Minimum: {inventory.MinimumStock}",
-                        ProductId = productId
-                    });
-                }
-            }
-        }
-    }
-
-    public async Task<bool> CheckStockAvailabilityAsync(int productId, int quantity)
-    {
-        var inventory = await GetInventoryByProductIdAsync(productId);
-        return inventory != null && inventory.CurrentStock >= quantity;
     }
 }

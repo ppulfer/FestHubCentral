@@ -276,11 +276,8 @@ public static class DataSeeder
 
         foreach (var forecastJson in forecastsJson)
         {
-            var locationId = forecastJson.LocationId == 28 ? null : forecastJson.LocationId;
-
             var existingInventory = await context.Inventories
                 .FirstOrDefaultAsync(i => i.ProductId == forecastJson.ProductId
-                                  && i.LocationId == locationId
                                   && i.EventYear == 2024);
 
             if (existingInventory != null) continue;
@@ -288,13 +285,7 @@ public static class DataSeeder
             var inventory = new Inventory
             {
                 ProductId = forecastJson.ProductId,
-                LocationId = locationId,
-                CurrentStock = forecastJson.Amount,
-                MinimumStock = 0,
-                MaximumStock = forecastJson.Amount + 100,
-                ReorderQuantity = forecastJson.InitialDelivery,
                 EventYear = 2024,
-                LastRestocked = SeedDate,
                 CreatedAt = SeedDate
             };
 

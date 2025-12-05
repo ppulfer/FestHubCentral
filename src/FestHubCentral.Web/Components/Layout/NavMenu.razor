@@ -15,7 +15,7 @@
             }
             @if (!IsCollapsed)
             {
-                <span class="brand-text">@(Settings?.FestivalName ?? "FestHub Central") @(Settings?.UpcomingEventYear ?? DateTime.UtcNow.Year)</span>
+                <span class="brand-text">@(Settings?.FestivalName ?? "FestHub Central") @(Settings?.CurrentEventYear ?? DateTime.UtcNow.Year)</span>
             }
         </a>
     </div>

@@ -283,9 +283,9 @@
     private async Task InitializeFilterDates()
     {
         var settings = await SettingsService.GetSettingsAsync();
-        if (settings?.UpcomingEvent != null)
+        if (settings?.CurrentEvent != null)
         {
-            currentEvent = settings.UpcomingEvent;
+            currentEvent = settings.CurrentEvent;
             filterStartDateTime = currentEvent.StartDate;
             filterEndDateTime = currentEvent.EndDate;
         }
@@ -294,7 +294,8 @@
     private async Task LoadData()
     {
         allTransfers = (await TransferService.GetAllTransfersAsync()).ToList();
-        locations = (await LocationService.GetAllLocationsAsync()).ToList();
+        var currentEventYear = currentEvent?.Year ?? DateTime.UtcNow.Year;
+        locations = (await LocationService.GetLocationsByEventYearAsync(currentEventYear)).ToList();
         products = (await InventoryService.GetAllInventoryAsync())
             .Select(i => i.Product)
             .Distinct()

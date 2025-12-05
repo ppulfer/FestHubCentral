@@ -24,7 +24,7 @@ public class InventoryTransferService : IInventoryTransferService
             .Include(t => t.FromLocation)
             .Include(t => t.ToLocation)
             .Include(t => t.CreatedByUser)
-            .Where(t => t.EventYear == settings.UpcomingEventYear)
+            .Where(t => t.EventYear == settings.CurrentEventYear)
             .OrderByDescending(t => t.TransferDate)
             .ToListAsync();
     }
@@ -37,7 +37,7 @@ public class InventoryTransferService : IInventoryTransferService
             .Include(t => t.FromLocation)
             .Include(t => t.ToLocation)
             .Include(t => t.CreatedByUser)
-            .Where(t => t.ProductId == productId && t.EventYear == settings.UpcomingEventYear)
+            .Where(t => t.ProductId == productId && t.EventYear == settings.CurrentEventYear)
             .OrderByDescending(t => t.TransferDate)
             .ToListAsync();
     }
@@ -51,7 +51,7 @@ public class InventoryTransferService : IInventoryTransferService
             .Include(t => t.ToLocation)
             .Include(t => t.CreatedByUser)
             .Where(t => (t.FromLocationId == locationId || t.ToLocationId == locationId)
-                       && t.EventYear == settings.UpcomingEventYear)
+                       && t.EventYear == settings.CurrentEventYear)
             .OrderByDescending(t => t.TransferDate)
             .ToListAsync();
     }
@@ -81,7 +81,7 @@ public class InventoryTransferService : IInventoryTransferService
             .Include(t => t.ToLocation)
             .Include(t => t.CreatedByUser)
             .Where(t => t.TransferDate >= utcStart && t.TransferDate < utcEnd
-                       && t.EventYear == settings.UpcomingEventYear)
+                       && t.EventYear == settings.CurrentEventYear)
             .OrderByDescending(t => t.TransferDate)
             .ToListAsync();
     }
@@ -94,14 +94,14 @@ public class InventoryTransferService : IInventoryTransferService
             .Include(t => t.FromLocation)
             .Include(t => t.ToLocation)
             .Include(t => t.CreatedByUser)
-            .Where(t => t.EventYear == settings.UpcomingEventYear)
+            .Where(t => t.EventYear == settings.CurrentEventYear)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public async Task<InventoryTransfer> CreateTransferAsync(InventoryTransfer transfer)
     {
         var settings = await _settingsService.GetSettingsAsync();
-        transfer.EventYear = settings.UpcomingEventYear;
+        transfer.EventYear = settings.CurrentEventYear;
         transfer.TransferDate = DateTime.UtcNow;
         transfer.CreatedAt = DateTime.UtcNow;
 

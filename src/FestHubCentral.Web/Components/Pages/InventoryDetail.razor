@@ -1,0 +1,367 @@
+@page "/inventory/{productId:int}"
+@using FestHubCentral.Web.Services.Interfaces
+@using FestHubCentral.Web.Data.Models
+@using FestHubCentral.Web.Data
+@using FestHubCentral.Web.Components.Shared
+@using Microsoft.EntityFrameworkCore
+@inject IProductService ProductService
+@inject ISettingsService SettingsService
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResources> Localizer
+@rendermode InteractiveServer
+
+<PageTitle>@(product?.Name ?? "Product") - Inventory Detail</PageTitle>
+
+<div class="container-fluid">
+    @if (product != null)
+    {
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/inventory">Inventory</a></li>
+                <li class="breadcrumb-item active">@product.Name</li>
+            </ol>
+        </nav>
+
+        <div class="row mb-4">
+            <div class="col">
+                <h1>📦 @product.Name</h1>
+                @if (!string.IsNullOrEmpty(product.Description))
+                {
+                    <p class="text-muted">@product.Description</p>
+                }
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <StatCard Icon="📊" Value="@product.Unit" Label="Unit" />
+            </div>
+            <div class="col-md-3">
+                <StatCard Icon="🏢" Value="@product.Supplier.Name" Label="Supplier" />
+            </div>
+            <div class="col-md-2">
+                <StatCard Icon="📅" Value="@currentEventYear.ToString()" Label="Event Year" />
+            </div>
+            <div class="col-md-2">
+                <StatCard Icon="📦" Value="@totalStockInStagingAreas.ToString()" Label="Stock in Storage" SubText="@product.Unit" CssClass="@(totalStockInStagingAreas > 0 ? "" : "stat-card-warning")" />
+            </div>
+        </div>
+
+        @if (productEventPrice != null)
+        {
+            <div class="section-card mb-4">
+                <h3 class="section-title">Pricing Information (@currentEventYear)</h3>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="pricing-card">
+                            <div class="pricing-label">Purchase Price</div>
+                            <div class="pricing-value">CHF @productEventPrice.PurchasePrice.ToString("F2")</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="pricing-card">
+                            <div class="pricing-label">Selling Price</div>
+                            <div class="pricing-value">CHF @productEventPrice.SellingPrice.ToString("F2")</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="pricing-card">
+                            <div class="pricing-label">Profit Margin</div>
+                            <div class="pricing-value profit">CHF @((productEventPrice.SellingPrice - productEventPrice.PurchasePrice).ToString("F2"))</div>
+                        </div>
+                    </div>
+                </div>
+                @if (productEventPrice.SpecialPrice.HasValue)
+                {
+                    <div class="alert alert-info mt-3">
+                        <strong>Special Price:</strong> CHF @productEventPrice.SpecialPrice.Value.ToString("F2")
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="section-card mb-4">
+                <h3 class="section-title">Pricing Information (@currentEventYear)</h3>
+                <div class="alert alert-warning">
+                    No pricing information available for this product in @currentEventYear. Please add pricing details.
+                </div>
+            </div>
+        }
+
+        <div class="section-card mb-4">
+            <h3 class="section-title">Transfer Statistics (@currentEventYear)</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <StatCard Icon="🔄" Value="@totalTransfers.ToString()" Label="Total Transfers" />
+                </div>
+                <div class="col-md-4">
+                    <StatCard Icon="📦" Value="@totalQuantityTransferred.ToString()" Label="Quantity Transferred" SubText="@product.Unit" />
+                </div>
+                <div class="col-md-4">
+                    <StatCard Icon="📈" Value="@($"{averageTransferQuantity:F1}")" Label="Avg Transfer Qty" SubText="@product.Unit" />
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card mb-4">
+            <h3 class="section-title">Stock Available (@currentEventYear)</h3>
+            @{
+                var stagingLocations = productLocations.Where(pl => pl.Location.Category == "Staging Area").ToList();
+            }
+            @if (stagingLocations.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Storage Location</th>
+                                <th class="text-end">Available Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pl in stagingLocations)
+                            {
+                                var transferredTo = locationTransferAmounts.GetValueOrDefault(pl.LocationId).TransferredTo;
+                                var transferredFrom = locationTransferAmounts.GetValueOrDefault(pl.LocationId).TransferredFrom;
+                                var stock = transferredTo - transferredFrom;
+
+                                <tr style="cursor: pointer;" @onclick="() => NavigateToLocation(pl.LocationId)">
+                                    <td><strong>@pl.Location.Name</strong></td>
+                                    <td class="text-end">
+                                        <strong class="@(stock > 0 ? "text-success" : stock < 0 ? "text-danger" : "text-muted")">
+                                            @stock @product.Unit
+                                        </strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No staging areas configured for this product in @currentEventYear</p>
+                </div>
+            }
+        </div>
+
+        <div class="section-card mb-4">
+            <h3 class="section-title">Location Distribution (@currentEventYear)</h3>
+            @{
+                var vendorLocations = productLocations.Where(pl => pl.Location.Category != "Staging Area").ToList();
+            }
+            @if (vendorLocations.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Category</th>
+                                <th class="text-end">Transferred To</th>
+                                <th class="text-end">Transferred From</th>
+                                <th class="text-end">Net Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pl in vendorLocations)
+                            {
+                                var transferredTo = locationTransferAmounts.GetValueOrDefault(pl.LocationId).TransferredTo;
+                                var transferredFrom = locationTransferAmounts.GetValueOrDefault(pl.LocationId).TransferredFrom;
+                                var netAmount = transferredTo - transferredFrom;
+
+                                <tr style="cursor: pointer;" @onclick="() => NavigateToLocation(pl.LocationId)">
+                                    <td><strong>@pl.Location.Name</strong></td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            @pl.Location.Category
+                                        </span>
+                                    </td>
+                                    <td class="text-end text-success">@transferredTo @product.Unit</td>
+                                    <td class="text-end text-danger">@transferredFrom @product.Unit</td>
+                                    <td class="text-end">
+                                        <strong class="@(netAmount >= 0 ? "text-success" : "text-danger")">
+                                            @(netAmount >= 0 ? "+" : "")@netAmount @product.Unit
+                                        </strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">This product is not assigned to any vendor location for @currentEventYear</p>
+                </div>
+            }
+        </div>
+
+        <div class="section-card">
+            <h3 class="section-title">Recent Transfers (@currentEventYear)</h3>
+            @if (recentTransfers.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Quantity</th>
+                                <th>Created By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transfer in recentTransfers)
+                            {
+                                <tr>
+                                    <td>@transfer.TransferDate.ToString("g")</td>
+                                    <td>@(transfer.FromLocation?.Name ?? "N/A")</td>
+                                    <td>@(transfer.ToLocation?.Name ?? "N/A")</td>
+                                    <td><strong>@transfer.Amount @product.Unit</strong></td>
+                                    <td>@(transfer.CreatedByUser?.UserName ?? "System")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted">No transfers for this product in @currentEventYear</p>
+                </div>
+            }
+        </div>
+    }
+    else if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-3">Loading product details...</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            <h4>Product Not Found</h4>
+            <p>The requested product could not be found.</p>
+            <a href="/inventory" class="btn btn-primary">Back to Inventory</a>
+        </div>
+    }
+</div>
+
+<style>
+    .pricing-card {
+        text-align: center;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+
+    .pricing-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+
+    .pricing-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #212529;
+    }
+
+    .pricing-value.profit {
+        color: #28a745;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int ProductId { get; set; }
+
+    private Product? product;
+    private ProductEventPrice? productEventPrice;
+    private List<ProductLocation> productLocations = new();
+    private List<InventoryTransfer> recentTransfers = new();
+    private Dictionary<int, (int TransferredTo, int TransferredFrom)> locationTransferAmounts = new();
+    private int currentEventYear;
+    private bool isLoading = true;
+
+    private int totalTransfers = 0;
+    private int totalQuantityTransferred = 0;
+    private decimal averageTransferQuantity = 0;
+    private int totalStockInStagingAreas = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settings = await SettingsService.GetSettingsAsync();
+        currentEventYear = settings?.CurrentEventYear ?? DateTime.UtcNow.Year;
+
+        await LoadProductData();
+        isLoading = false;
+    }
+
+    private async Task LoadProductData()
+    {
+        product = await DbContext.Products
+            .Include(p => p.Supplier)
+            .FirstOrDefaultAsync(p => p.Id == ProductId);
+
+        if (product == null)
+            return;
+
+        productEventPrice = await DbContext.ProductEventPrices
+            .FirstOrDefaultAsync(pep => pep.ProductId == ProductId && pep.EventYear == currentEventYear);
+
+        productLocations = await DbContext.ProductLocations
+            .Include(pl => pl.Location)
+            .Where(pl => pl.ProductId == ProductId && pl.EventYear == currentEventYear)
+            .ToListAsync();
+
+        var transfers = await DbContext.InventoryTransfers
+            .Include(it => it.FromLocation)
+            .Include(it => it.ToLocation)
+            .Include(it => it.CreatedByUser)
+            .Where(it => it.ProductId == ProductId && it.EventYear == currentEventYear)
+            .OrderByDescending(it => it.TransferDate)
+            .ToListAsync();
+
+        totalTransfers = transfers.Count;
+        totalQuantityTransferred = transfers.Sum(it => it.Amount);
+        averageTransferQuantity = totalTransfers > 0 ? (decimal)totalQuantityTransferred / totalTransfers : 0;
+
+        recentTransfers = transfers.Take(20).ToList();
+
+        foreach (var location in productLocations)
+        {
+            var transferredTo = transfers
+                .Where(t => t.ToLocationId == location.LocationId)
+                .Sum(t => t.Amount);
+
+            var transferredFrom = transfers
+                .Where(t => t.FromLocationId == location.LocationId)
+                .Sum(t => t.Amount);
+
+            locationTransferAmounts[location.LocationId] = (transferredTo, transferredFrom);
+
+            if (location.Location.Category == "Staging Area")
+            {
+                totalStockInStagingAreas += (transferredTo - transferredFrom);
+            }
+        }
+    }
+
+    private void NavigateToLocation(int locationId)
+    {
+        Navigation.NavigateTo($"/locations/{locationId}");
+    }
+}

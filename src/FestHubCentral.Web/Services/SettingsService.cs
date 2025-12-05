@@ -35,7 +35,7 @@ public class SettingsService : ISettingsService
             }
 
             var settings = await _context.Settings
-                .Include(s => s.UpcomingEvent)
+                .Include(s => s.CurrentEvent)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -85,7 +85,7 @@ public class SettingsService : ISettingsService
                 existing.SecondaryColor = settings.SecondaryColor;
                 existing.AccentColor = settings.AccentColor;
                 existing.Tagline = settings.Tagline;
-                existing.UpcomingEventYear = settings.UpcomingEventYear;
+                existing.CurrentEventYear = settings.CurrentEventYear;
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedBy = settings.UpdatedBy;
             }
