@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Alert> Alerts => Set<Alert>();
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
     public DbSet<Settings> Settings => Set<Settings>();
+    public DbSet<QRCode> QRCodes => Set<QRCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -238,6 +239,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(e => e.CurrentEventYear)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<QRCode>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.LocationId).IsUnique();
+            entity.Property(e => e.Code).IsRequired();
+
+            entity.HasOne(e => e.Location)
+                .WithMany()
+                .HasForeignKey(e => e.LocationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         SeedData(modelBuilder);

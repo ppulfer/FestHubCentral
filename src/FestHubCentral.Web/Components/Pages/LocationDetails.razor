@@ -7,6 +7,7 @@
 @inject IInventoryService InventoryService
 @inject IInventoryTransferService TransferService
 @inject ISettingsService SettingsService
+@inject IQRCodeService QRCodeService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
@@ -53,7 +54,26 @@
                     <div class="h5 @(totalProfit > 0 ? "text-success" : "text-danger")">@totalProfit.ToString("C")</div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
+                <div class="section-card h-100 d-flex flex-column align-items-center justify-content-center">
+                    @if (qrCode != null && !string.IsNullOrEmpty(qrCode.ImageData))
+                    {
+                        <img src="@qrCode.ImageData" alt="Location QR Code" style="width: 100%; max-width: 150px; border-radius: 8px;" />
+                        <small class="text-muted mt-2">Scans: @qrCode.ScanCount</small>
+                    }
+                    else if (qrCode == null)
+                    {
+                        <button class="btn btn-sm btn-primary" @onclick="GenerateQRCode">
+                            <i class="bi bi-qr-code"></i> Generate QR Code
+                        </button>
+                    }
+                    else
+                    {
+                        <small class="text-muted">Generating...</small>
+                    }
+                </div>
+            </div>
+            <div class="col-md-2">
                 <div class="section-card h-100">
                     <label class="form-label">Event Year</label>
                     <select class="form-select" @bind="selectedEventYear" @bind:after="LoadForecasts">
@@ -342,6 +362,8 @@
     private int currentPage = 1;
     private const int pageSize = 30;
 
+    private QRCode? qrCode;
+
     protected override async Task OnInitializedAsync()
     {
         location = await LocationService.GetLocationByIdAsync(LocationId);
@@ -361,6 +383,7 @@
         availableYears = new List<int> { 2024, 2026 };
 
         await LoadData();
+        await LoadQRCode();
     }
 
     private async Task LoadData()
@@ -568,5 +591,26 @@
             badgeClass = "bg-success";
 
         return new MarkupString($"<span class='badge {badgeClass}'>{currentStock} ({stockPercentage:F0}%)</span>");
+    }
+
+    private async Task LoadQRCode()
+    {
+        qrCode = await QRCodeService.GetQRCodeByLocationIdAsync(LocationId);
+    }
+
+    private async Task GenerateQRCode()
+    {
+        qrCode = null;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            qrCode = await QRCodeService.GenerateQRCodeForLocationAsync(LocationId);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating QR code: {ex.Message}");
+        }
     }
 }

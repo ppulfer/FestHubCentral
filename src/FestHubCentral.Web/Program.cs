@@ -4,6 +4,7 @@ using FestHubCentral.Web.Data.Models;
 using FestHubCentral.Web.Hubs;
 using FestHubCentral.Web.Services;
 using FestHubCentral.Web.Services.Interfaces;
+using FestHubCentral.Web.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,7 @@ CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-CH");
 
 builder.Services.AddControllers();
 builder.Services.AddLocalization();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -56,6 +58,7 @@ builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();
 builder.Services.AddScoped<IProductLocationService, ProductLocationService>();
+builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 
 builder.Services.AddSignalR();
 
