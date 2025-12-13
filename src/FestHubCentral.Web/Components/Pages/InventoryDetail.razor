@@ -23,86 +23,56 @@
             </ol>
         </nav>
 
-        <div class="row mb-4">
+        <div class="row mb-3">
             <div class="col">
-                <h1>📦 @product.Name</h1>
-                @if (!string.IsNullOrEmpty(product.Description))
-                {
-                    <p class="text-muted">@product.Description</p>
-                }
+                <h2>📦 @product.Name</h2>
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-2">
-                <StatCard Icon="📊" Value="@product.Unit" Label="Unit" />
+        <div class="section-card mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="section-title mb-0">Pricing Information (@currentEventYear)</h3>
+                <button class="btn btn-sm btn-outline-primary" @onclick="ShowPriceModal">
+                    <i class="bi bi-pencil"></i> @(productEventPrice != null ? "Edit" : "Add") Prices
+                </button>
             </div>
-            <div class="col-md-3">
-                <StatCard Icon="🏢" Value="@product.Supplier.Name" Label="Supplier" />
-            </div>
-            <div class="col-md-2">
-                <StatCard Icon="📅" Value="@currentEventYear.ToString()" Label="Event Year" />
-            </div>
-            <div class="col-md-2">
-                <StatCard Icon="📦" Value="@totalStockInStagingAreas.ToString()" Label="Stock in Storage" SubText="@product.Unit" CssClass="@(totalStockInStagingAreas > 0 ? "" : "stat-card-warning")" />
-            </div>
-        </div>
-
-        @if (productEventPrice != null)
-        {
-            <div class="section-card mb-4">
-                <h3 class="section-title">Pricing Information (@currentEventYear)</h3>
-                <div class="row">
-                    <div class="col-md-4">
+            @if (productEventPrice != null)
+            {
+                <div class="row mt-3">
+                    <div class="col-md-3">
                         <div class="pricing-card">
                             <div class="pricing-label">Purchase Price</div>
                             <div class="pricing-value">CHF @productEventPrice.PurchasePrice.ToString("F2")</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="pricing-card">
                             <div class="pricing-label">Selling Price</div>
                             <div class="pricing-value">CHF @productEventPrice.SellingPrice.ToString("F2")</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="pricing-card">
                             <div class="pricing-label">Profit Margin</div>
                             <div class="pricing-value profit">CHF @((productEventPrice.SellingPrice - productEventPrice.PurchasePrice).ToString("F2"))</div>
                         </div>
                     </div>
-                </div>
-                @if (productEventPrice.SpecialPrice.HasValue)
-                {
-                    <div class="alert alert-info mt-3">
-                        <strong>Special Price:</strong> CHF @productEventPrice.SpecialPrice.Value.ToString("F2")
+                    <div class="col-md-3">
+                        <div class="pricing-card">
+                            <div class="pricing-label">Special Price</div>
+                            <div class="pricing-value @(productEventPrice.SpecialPrice.HasValue ? "text-info" : "text-muted")">
+                                @(productEventPrice.SpecialPrice.HasValue ? $"CHF {productEventPrice.SpecialPrice.Value:F2}" : "-")
+                            </div>
+                        </div>
                     </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="section-card mb-4">
-                <h3 class="section-title">Pricing Information (@currentEventYear)</h3>
-                <div class="alert alert-warning">
-                    No pricing information available for this product in @currentEventYear. Please add pricing details.
                 </div>
-            </div>
-        }
-
-        <div class="section-card mb-4">
-            <h3 class="section-title">Transfer Statistics (@currentEventYear)</h3>
-            <div class="row">
-                <div class="col-md-4">
-                    <StatCard Icon="🔄" Value="@totalTransfers.ToString()" Label="Total Transfers" />
+            }
+            else
+            {
+                <div class="alert alert-warning mt-3">
+                    No pricing information available for this product in @currentEventYear. Click "Add Prices" to set pricing.
                 </div>
-                <div class="col-md-4">
-                    <StatCard Icon="📦" Value="@totalQuantityTransferred.ToString()" Label="Quantity Transferred" SubText="@product.Unit" />
-                </div>
-                <div class="col-md-4">
-                    <StatCard Icon="📈" Value="@($"{averageTransferQuantity:F1}")" Label="Avg Transfer Qty" SubText="@product.Unit" />
-                </div>
-            </div>
+            }
         </div>
 
         <div class="section-card mb-4">
@@ -149,43 +119,54 @@
         </div>
 
         <div class="section-card mb-4">
-            <h3 class="section-title">Location Distribution (@currentEventYear)</h3>
-            @{
-                var vendorLocations = productLocations.Where(pl => pl.Location.Category != "Staging Area").ToList();
-            }
-            @if (vendorLocations.Any())
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="section-title mb-0">Location Planning (@currentEventYear)</h3>
+                <button class="btn btn-sm btn-outline-primary" @onclick="ShowAddLocationModal">
+                    <i class="bi bi-plus-circle"></i> Add Location
+                </button>
+            </div>
+            @if (productLocations.Any())
             {
-                <div class="table-responsive">
+                <div class="table-responsive mt-3">
                     <table class="table table-hover">
                         <thead>
                             <tr>
                                 <th>Location</th>
                                 <th>Category</th>
-                                <th class="text-end">Transferred To</th>
-                                <th class="text-end">Transferred From</th>
-                                <th class="text-end">Net Amount</th>
+                                <th class="text-end">Planned</th>
+                                <th class="text-end">Initial Delivery</th>
+                                <th class="text-end">Current Stock</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var pl in vendorLocations)
+                            @foreach (var pl in productLocations.OrderBy(p => p.Location.Name))
                             {
                                 var transferredTo = locationTransferAmounts.GetValueOrDefault(pl.LocationId).TransferredTo;
                                 var transferredFrom = locationTransferAmounts.GetValueOrDefault(pl.LocationId).TransferredFrom;
-                                var netAmount = transferredTo - transferredFrom;
+                                var currentStock = transferredTo - transferredFrom;
 
                                 <tr style="cursor: pointer;" @onclick="() => NavigateToLocation(pl.LocationId)">
                                     <td><strong>@pl.Location.Name</strong></td>
                                     <td>
-                                        <span class="badge bg-secondary">
+                                        <span class="badge @(pl.Location.Category == "Staging Area" ? "bg-info" : "bg-secondary")">
                                             @pl.Location.Category
                                         </span>
                                     </td>
-                                    <td class="text-end text-success">@transferredTo @product.Unit</td>
-                                    <td class="text-end text-danger">@transferredFrom @product.Unit</td>
+                                    <td class="text-end">@pl.PlannedAmount @product.Unit</td>
+                                    <td class="text-end">@pl.InitialDelivery @product.Unit</td>
                                     <td class="text-end">
-                                        <strong class="@(netAmount >= 0 ? "text-success" : "text-danger")">
-                                            @(netAmount >= 0 ? "+" : "")@netAmount @product.Unit
+                                        <strong class="@(currentStock > 0 ? "text-success" : currentStock < 0 ? "text-danger" : "text-muted")">
+                                            @currentStock @product.Unit
                                         </strong>
+                                    </td>
+                                    <td @onclick:stopPropagation="true" style="white-space: nowrap;">
+                                        <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => ShowEditLocationModal(pl)" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteProductLocation(pl)" title="Remove">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -196,7 +177,7 @@
             else
             {
                 <div class="text-center py-4">
-                    <p class="text-muted">This product is not assigned to any vendor location for @currentEventYear</p>
+                    <p class="text-muted">No locations assigned for this product in @currentEventYear</p>
                 </div>
             }
         </div>
@@ -258,6 +239,96 @@
     }
 </div>
 
+@if (showPriceModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(productEventPrice != null ? "Edit" : "Add") Pricing for @currentEventYear</h5>
+                    <button type="button" class="btn-close" @onclick="ClosePriceModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Purchase Price (CHF)</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" @bind="editPurchasePrice" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Selling Price (CHF)</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" @bind="editSellingPrice" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Special Price (CHF) - Optional</label>
+                        <input type="number" step="0.01" min="0" class="form-control" @bind="editSpecialPrice" placeholder="Leave empty if not applicable" />
+                    </div>
+                    @if (editPurchasePrice > 0 && editSellingPrice > 0)
+                    {
+                        <div class="alert alert-info">
+                            <strong>Profit Margin:</strong> CHF @((editSellingPrice - editPurchasePrice).ToString("F2"))
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="ClosePriceModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SavePrices" disabled="@(!CanSavePrices())">
+                        Save Prices
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showLocationModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingProductLocationId > 0 ? "Edit" : "Add") Location Planning</h5>
+                    <button type="button" class="btn-close" @onclick="CloseLocationModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (editingProductLocationId == 0)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <select class="form-select" @bind="selectedLocationId">
+                                <option value="0">Select a location...</option>
+                                @foreach (var loc in availableLocations)
+                                {
+                                    <option value="@loc.Id">@loc.Name (@loc.Category)</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" value="@editingLocationName" disabled />
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label class="form-label">Planned Amount</label>
+                        <input type="number" min="0" class="form-control" @bind="editPlannedAmount" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Initial Delivery</label>
+                        <input type="number" min="0" class="form-control" @bind="editInitialDelivery" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseLocationModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveProductLocation" disabled="@(!CanSaveLocation())">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     .pricing-card {
         text-align: center;
@@ -296,10 +367,18 @@
     private int currentEventYear;
     private bool isLoading = true;
 
-    private int totalTransfers = 0;
-    private int totalQuantityTransferred = 0;
-    private decimal averageTransferQuantity = 0;
-    private int totalStockInStagingAreas = 0;
+    private bool showPriceModal = false;
+    private decimal editPurchasePrice = 0;
+    private decimal editSellingPrice = 0;
+    private decimal? editSpecialPrice = null;
+
+    private bool showLocationModal = false;
+    private int editingProductLocationId = 0;
+    private string editingLocationName = string.Empty;
+    private int selectedLocationId = 0;
+    private int editPlannedAmount = 0;
+    private int editInitialDelivery = 0;
+    private List<Location> availableLocations = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -335,10 +414,6 @@
             .OrderByDescending(it => it.TransferDate)
             .ToListAsync();
 
-        totalTransfers = transfers.Count;
-        totalQuantityTransferred = transfers.Sum(it => it.Amount);
-        averageTransferQuantity = totalTransfers > 0 ? (decimal)totalQuantityTransferred / totalTransfers : 0;
-
         recentTransfers = transfers.Take(20).ToList();
 
         foreach (var location in productLocations)
@@ -352,16 +427,151 @@
                 .Sum(t => t.Amount);
 
             locationTransferAmounts[location.LocationId] = (transferredTo, transferredFrom);
-
-            if (location.Location.Category == "Staging Area")
-            {
-                totalStockInStagingAreas += (transferredTo - transferredFrom);
-            }
         }
     }
 
     private void NavigateToLocation(int locationId)
     {
         Navigation.NavigateTo($"/locations/{locationId}");
+    }
+
+    private void ShowPriceModal()
+    {
+        if (productEventPrice != null)
+        {
+            editPurchasePrice = productEventPrice.PurchasePrice;
+            editSellingPrice = productEventPrice.SellingPrice;
+            editSpecialPrice = productEventPrice.SpecialPrice;
+        }
+        else
+        {
+            editPurchasePrice = 0;
+            editSellingPrice = 0;
+            editSpecialPrice = null;
+        }
+        showPriceModal = true;
+    }
+
+    private void ClosePriceModal()
+    {
+        showPriceModal = false;
+    }
+
+    private bool CanSavePrices()
+    {
+        return editPurchasePrice > 0 && editSellingPrice > 0;
+    }
+
+    private async Task SavePrices()
+    {
+        if (!CanSavePrices()) return;
+
+        if (productEventPrice != null)
+        {
+            productEventPrice.PurchasePrice = editPurchasePrice;
+            productEventPrice.SellingPrice = editSellingPrice;
+            productEventPrice.SpecialPrice = editSpecialPrice > 0 ? editSpecialPrice : null;
+            productEventPrice.UpdatedAt = DateTime.UtcNow;
+            DbContext.ProductEventPrices.Update(productEventPrice);
+        }
+        else
+        {
+            productEventPrice = new ProductEventPrice
+            {
+                ProductId = ProductId,
+                EventYear = currentEventYear,
+                PurchasePrice = editPurchasePrice,
+                SellingPrice = editSellingPrice,
+                SpecialPrice = editSpecialPrice > 0 ? editSpecialPrice : null,
+                CreatedAt = DateTime.UtcNow
+            };
+            DbContext.ProductEventPrices.Add(productEventPrice);
+        }
+
+        await DbContext.SaveChangesAsync();
+        ClosePriceModal();
+    }
+
+    private async Task ShowAddLocationModal()
+    {
+        var assignedLocationIds = productLocations.Select(pl => pl.LocationId).ToHashSet();
+        availableLocations = await DbContext.Locations
+            .Where(l => !assignedLocationIds.Contains(l.Id))
+            .OrderBy(l => l.Name)
+            .ToListAsync();
+
+        editingProductLocationId = 0;
+        editingLocationName = string.Empty;
+        selectedLocationId = 0;
+        editPlannedAmount = 0;
+        editInitialDelivery = 0;
+        showLocationModal = true;
+    }
+
+    private void ShowEditLocationModal(ProductLocation pl)
+    {
+        editingProductLocationId = pl.Id;
+        editingLocationName = pl.Location.Name;
+        selectedLocationId = pl.LocationId;
+        editPlannedAmount = pl.PlannedAmount;
+        editInitialDelivery = pl.InitialDelivery;
+        showLocationModal = true;
+    }
+
+    private void CloseLocationModal()
+    {
+        showLocationModal = false;
+        editingProductLocationId = 0;
+        editingLocationName = string.Empty;
+        selectedLocationId = 0;
+        editPlannedAmount = 0;
+        editInitialDelivery = 0;
+    }
+
+    private bool CanSaveLocation()
+    {
+        if (editingProductLocationId > 0)
+            return true;
+        return selectedLocationId > 0;
+    }
+
+    private async Task SaveProductLocation()
+    {
+        if (!CanSaveLocation()) return;
+
+        if (editingProductLocationId > 0)
+        {
+            var pl = await DbContext.ProductLocations.FindAsync(editingProductLocationId);
+            if (pl != null)
+            {
+                pl.PlannedAmount = editPlannedAmount;
+                pl.InitialDelivery = editInitialDelivery;
+                pl.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+        else
+        {
+            var newPl = new ProductLocation
+            {
+                ProductId = ProductId,
+                LocationId = selectedLocationId,
+                EventYear = currentEventYear,
+                PlannedAmount = editPlannedAmount,
+                InitialDelivery = editInitialDelivery,
+                CreatedAt = DateTime.UtcNow
+            };
+            DbContext.ProductLocations.Add(newPl);
+        }
+
+        await DbContext.SaveChangesAsync();
+        await LoadProductData();
+        CloseLocationModal();
+    }
+
+    private async Task DeleteProductLocation(ProductLocation pl)
+    {
+        DbContext.ProductLocations.Remove(pl);
+        await DbContext.SaveChangesAsync();
+        await LoadProductData();
     }
 }

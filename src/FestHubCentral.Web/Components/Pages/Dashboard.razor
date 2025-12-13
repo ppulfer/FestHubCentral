@@ -5,8 +5,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.AspNetCore.Components.Authorization
 @inject ILocationService LocationService
-@inject IAlertService AlertService
-@inject IInventoryService InventoryService
+@inject ILocationTransferRequestService TransferRequestService
 @inject ISettingsService SettingsService
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResources> Localizer
@@ -17,38 +16,49 @@
 <PageTitle>@Localizer["Nav.Dashboard"].Value - @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.CurrentEventYear ?? DateTime.UtcNow.Year)</PageTitle>
 
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h1>
-                @if (!string.IsNullOrEmpty(brandingSettings?.LogoPath))
-                {
-                    <img src="@brandingSettings.LogoPath" alt="Logo" style="height: 48px; width: auto; margin-right: 12px;" />
-                }
-                else
-                {
-                    <span>🎪 </span>
-                }
-                @(brandingSettings?.FestivalName ?? "FestHub Central") @(brandingSettings?.CurrentEventYear ?? DateTime.UtcNow.Year) @Localizer["Nav.Dashboard"].Value
-            </h1>
-            <p class="text-muted">@(brandingSettings?.Tagline ?? Localizer["Dashboard.Tagline"].Value)</p>
+    @if (pendingTransferRequests.Any())
+    {
+        <div class="section-card mb-4">
+            <h3 class="section-title">Pending Transfer Requests</h3>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>From</th>
+                            <th>Amount</th>
+                            <th>Requested</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in pendingTransferRequests.Take(10))
+                        {
+                            <tr>
+                                <td><strong>@request.Product.Name</strong></td>
+                                <td>@request.FromLocation.Name</td>
+                                <td>@request.Amount @request.Product.Unit</td>
+                                <td>@request.RequestedAt.ToString("g")</td>
+                                <td>
+                                    <a href="/admin/transfer-requests" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Review
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (pendingTransferRequestCount > 10)
+            {
+                <div class="text-center mt-2">
+                    <a href="/admin/transfer-requests" class="btn btn-outline-secondary btn-sm">
+                        View all @pendingTransferRequestCount requests
+                    </a>
+                </div>
+            }
         </div>
-    </div>
-
-    <div class="dashboard-grid">
-        <StatCard
-            Icon="🚨"
-            Value="@pendingTransferRequestCount.ToString()"
-            Label="@Localizer["Dashboard.ActiveAlerts"].Value"
-            SubText="@Localizer["Dashboard.UnresolvedIssues"].Value"
-            CssClass="@(pendingTransferRequestCount > 0 ? "stat-card-danger" : "")" />
-        
-        <StatCard
-            Icon="📦"
-            Value="@lowStockCount.ToString()"
-            Label="@Localizer["Dashboard.LowStockItems"].Value"
-            SubText="@Localizer["Dashboard.RequiresAttention"].Value"
-            CssClass="@(lowStockCount > 0 ? "stat-card-warning" : "")" />
-    </div>
+    }
 
     <div class="row">
         <div class="col-md-12">
@@ -71,7 +81,7 @@
     private HubConnection? hubConnection;
     private Data.Models.Settings? brandingSettings;
     private List<Data.Models.Location> locations = new();
-    private int lowStockCount = 0;
+    private List<TransferRequest> pendingTransferRequests = new();
     private int pendingTransferRequestCount = 0;
     private readonly SemaphoreSlim _loadDataSemaphore = new(1, 1);
 
@@ -100,7 +110,8 @@
         {
             var currentEventYear = brandingSettings?.CurrentEventYear ?? DateTime.UtcNow.Year;
             locations = (await LocationService.GetLocationsByEventYearAsync(currentEventYear)).ToList();
-            lowStockCount = 0;
+            pendingTransferRequests = (await TransferRequestService.GetPendingRequestsAsync()).ToList();
+            pendingTransferRequestCount = pendingTransferRequests.Count;
         }
         finally
         {

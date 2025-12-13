@@ -49,7 +49,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<ILocationService, LocationService>();
-builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();

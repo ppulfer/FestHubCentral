@@ -15,10 +15,9 @@
 <PageTitle>@Localizer["Nav.Inventory"].Value</PageTitle>
 
 <div class="container-fluid">
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col">
-            <h1>📦 @Localizer["Nav.Inventory"].Value</h1>
-            <p class="text-muted">Manage inventory for all products</p>
+            <h2>📦 @Localizer["Nav.Inventory"].Value</h2>
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" @onclick="ShowAddProductForm">
@@ -27,16 +26,15 @@
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <StatCard Icon="📊" Value="@totalItems.ToString()" Label="Total Items" />
-        </div>
-    </div>
-
     <div class="section-card">
-        <h3 class="section-title">Products for @selectedYear</h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="section-title mb-0">Products for @selectedYear</h3>
+            <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Search products..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+        </div>
 
-        @if (filteredInventory.Any())
+        @if (GetFilteredInventory().Any())
         {
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -44,15 +42,17 @@
                         <tr>
                             <th>Product</th>
                             <th>Supplier</th>
-                            <th>Unit</th>
-                            <th>Added</th>
+                            <th class="text-end">Stock (Staging)</th>
+                            <th class="text-end">Planned</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in GetPagedInventory())
                         {
-                            <tr>
+                            var stockInStaging = GetStockInStagingAreas(item.ProductId);
+                            var plannedAmount = GetTotalPlannedAmount(item.ProductId);
+                            <tr style="cursor: pointer;" @onclick="() => NavigateToDetail(item.ProductId)">
                                 <td>
                                     <strong>@item.Product.Name</strong>
                                     @if (!string.IsNullOrEmpty(item.Product.Description))
@@ -62,14 +62,18 @@
                                     }
                                 </td>
                                 <td>@item.Product.Supplier.Name</td>
-                                <td>@item.Product.Unit</td>
-                                <td>@item.CreatedAt.ToString("g")</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => NavigateToDetail(item.ProductId)">
-                                        <i class="bi bi-eye"></i> Show
+                                <td class="text-end">
+                                    <span class="@(stockInStaging > 0 ? "text-success" : stockInStaging < 0 ? "text-danger" : "text-muted")">
+                                        @stockInStaging @item.Product.Unit
+                                    </span>
+                                </td>
+                                <td class="text-end">@plannedAmount @item.Product.Unit</td>
+                                <td @onclick:stopPropagation="true" style="white-space: nowrap;">
+                                    <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => ShowEditModal(item)" title="Edit">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteInventory(item)">
-                                        <i class="bi bi-trash"></i> Remove
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteInventory(item)" title="Remove">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -80,9 +84,19 @@
 
             <div class="mt-3">
                 <Pagination CurrentPage="@currentPage"
-                            TotalItems="@filteredInventory.Count"
+                            TotalItems="@GetFilteredInventory().Count"
                             PageSize="@pageSize"
                             OnPageChange="@HandlePageChange" />
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-search display-1 text-muted"></i>
+                <p class="text-muted mt-3">No products found matching "@searchTerm"</p>
+                <button class="btn btn-outline-secondary" @onclick="() => searchTerm = string.Empty">
+                    Clear Search
+                </button>
             </div>
         }
         else
@@ -90,9 +104,17 @@
             <div class="text-center py-5">
                 <i class="bi bi-inbox display-1 text-muted"></i>
                 <p class="text-muted mt-3">No products in inventory for @selectedYear</p>
-                <button class="btn btn-primary" @onclick="ShowAddProductForm">
-                    <i class="bi bi-plus-circle"></i> Add First Product
-                </button>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-primary" @onclick="ShowAddProductForm">
+                        <i class="bi bi-plus-circle"></i> Add First Product
+                    </button>
+                    @if (previousEventsWithInventory.Any())
+                    {
+                        <button class="btn btn-outline-secondary" @onclick="ShowImportModal">
+                            <i class="bi bi-download"></i> Import from Previous Event
+                        </button>
+                    }
+                </div>
             </div>
         }
     </div>
@@ -173,13 +195,110 @@
     </div>
 }
 
+@if (showImportModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Products from Previous Event</h5>
+                    <button type="button" class="btn-close" @onclick="CloseImportModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Event</label>
+                        <select class="form-select" @bind="selectedImportYear">
+                            <option value="0">Select an event...</option>
+                            @foreach (var evt in previousEventsWithInventory)
+                            {
+                                <option value="@evt.Year">@evt.Name (@evt.Year) - @evt.ProductCount products</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>All products from the selected event will be added to <strong>@selectedYear</strong>.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseImportModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ImportFromPreviousEvent" disabled="@(selectedImportYear == 0 || isImporting)">
+                        @if (isImporting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                            <span>Importing...</span>
+                        }
+                        else
+                        {
+                            <span>Import Products</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showEditModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Product</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" class="form-control" @bind="editProductName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="editProductDescription" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unit</label>
+                        <input type="text" class="form-control" @bind="editProductUnit" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supplier</label>
+                        <select class="form-select" @bind="editProductSupplierId">
+                            @foreach (var supplier in availableSuppliers)
+                            {
+                                <option value="@supplier.Id">@supplier.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="canRestockSwitch" @bind="editProductCanRestock" />
+                            <label class="form-check-label" for="canRestockSwitch">Can Restock</label>
+                        </div>
+                        <small class="text-muted">Enable if this product can be restocked during the event</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveProduct" disabled="@(!CanSaveProduct())">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<FestHubCentral.Web.Data.Models.Inventory> filteredInventory = new();
     private List<Product> availableProducts = new();
     private List<Supplier> availableSuppliers = new();
+    private List<PreviousEventInfo> previousEventsWithInventory = new();
+    private List<InventoryTransfer> allTransfers = new();
+    private List<ProductLocation> allProductLocations = new();
+    private HashSet<int> stagingAreaIds = new();
 
     private int selectedYear = 2024;
-    private int totalItems = 0;
+    private string searchTerm = string.Empty;
     private bool showAddModal = false;
     private int selectedProductId = 0;
     private bool isCreatingNewProduct = false;
@@ -191,6 +310,20 @@
 
     private int currentPage = 1;
     private const int pageSize = 30;
+
+    private bool showImportModal = false;
+    private int selectedImportYear = 0;
+    private bool isImporting = false;
+
+    private bool showEditModal = false;
+    private int editProductId = 0;
+    private string editProductName = string.Empty;
+    private string editProductDescription = string.Empty;
+    private string editProductUnit = string.Empty;
+    private int editProductSupplierId = 0;
+    private bool editProductCanRestock = true;
+
+    private record PreviousEventInfo(int Year, string Name, int ProductCount);
 
     protected override async Task OnInitializedAsync()
     {
@@ -208,12 +341,30 @@
         await LoadInventory();
         await LoadAvailableProducts();
         await LoadAvailableSuppliers();
+        await LoadPreviousEventsWithInventory();
+        await LoadTransfersAndLocations();
+    }
+
+    private async Task LoadTransfersAndLocations()
+    {
+        stagingAreaIds = (await DbContext.Locations
+            .Where(l => l.Category == "Staging Area")
+            .Select(l => l.Id)
+            .ToListAsync())
+            .ToHashSet();
+
+        allTransfers = await DbContext.InventoryTransfers
+            .Where(t => t.EventYear == selectedYear)
+            .ToListAsync();
+
+        allProductLocations = await DbContext.ProductLocations
+            .Where(pl => pl.EventYear == selectedYear)
+            .ToListAsync();
     }
 
     private async Task LoadInventory()
     {
         filteredInventory = (await InventoryService.GetAllInventoryAsync()).ToList();
-        totalItems = filteredInventory.Count;
         currentPage = 1;
     }
 
@@ -231,6 +382,80 @@
         availableSuppliers = await DbContext.Suppliers
             .OrderBy(s => s.Name)
             .ToListAsync();
+    }
+
+    private async Task LoadPreviousEventsWithInventory()
+    {
+        var events = await DbContext.Events
+            .Where(e => e.Year != selectedYear)
+            .Include(e => e.Inventories)
+            .ToListAsync();
+
+        previousEventsWithInventory = events
+            .Select(e => new PreviousEventInfo(e.Year, e.Name, e.Inventories.Count))
+            .Where(e => e.ProductCount > 0)
+            .OrderByDescending(e => e.Year)
+            .ToList();
+    }
+
+    private void ShowImportModal()
+    {
+        selectedImportYear = 0;
+        showImportModal = true;
+    }
+
+    private void CloseImportModal()
+    {
+        showImportModal = false;
+        selectedImportYear = 0;
+    }
+
+    private async Task ImportFromPreviousEvent()
+    {
+        if (selectedImportYear == 0) return;
+
+        isImporting = true;
+        StateHasChanged();
+
+        var previousInventory = await InventoryService.GetInventoryByYearAsync(selectedImportYear);
+        var previousPrices = await DbContext.ProductEventPrices
+            .Where(p => p.EventYear == selectedImportYear)
+            .ToListAsync();
+
+        foreach (var item in previousInventory)
+        {
+            var existingInventory = filteredInventory.FirstOrDefault(i => i.ProductId == item.ProductId);
+            if (existingInventory != null) continue;
+
+            var inventory = new FestHubCentral.Web.Data.Models.Inventory
+            {
+                ProductId = item.ProductId,
+                EventYear = selectedYear
+            };
+
+            await InventoryService.CreateInventoryAsync(inventory);
+
+            var previousPrice = previousPrices.FirstOrDefault(p => p.ProductId == item.ProductId);
+            if (previousPrice != null)
+            {
+                var newPrice = new ProductEventPrice
+                {
+                    ProductId = item.ProductId,
+                    EventYear = selectedYear,
+                    PurchasePrice = previousPrice.PurchasePrice,
+                    SellingPrice = previousPrice.SellingPrice,
+                    SpecialPrice = previousPrice.SpecialPrice,
+                    CreatedAt = DateTime.UtcNow
+                };
+                DbContext.ProductEventPrices.Add(newPrice);
+            }
+        }
+
+        await DbContext.SaveChangesAsync();
+
+        isImporting = false;
+        await LoadData();
+        CloseImportModal();
     }
 
     private void ShowAddProductForm()
@@ -312,9 +537,44 @@
         await LoadInventory();
     }
 
+    private List<FestHubCentral.Web.Data.Models.Inventory> GetFilteredInventory()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return filteredInventory;
+
+        var term = searchTerm.ToLower();
+        return filteredInventory
+            .Where(i => i.Product.Name.ToLower().Contains(term) ||
+                       (i.Product.Description?.ToLower().Contains(term) ?? false) ||
+                       i.Product.Supplier.Name.ToLower().Contains(term))
+            .ToList();
+    }
+
+    private int GetStockInStagingAreas(int productId)
+    {
+        var productTransfers = allTransfers.Where(t => t.ProductId == productId).ToList();
+
+        var transferredTo = productTransfers
+            .Where(t => t.ToLocationId.HasValue && stagingAreaIds.Contains(t.ToLocationId.Value))
+            .Sum(t => t.Amount);
+
+        var transferredFrom = productTransfers
+            .Where(t => t.FromLocationId.HasValue && stagingAreaIds.Contains(t.FromLocationId.Value))
+            .Sum(t => t.Amount);
+
+        return transferredTo - transferredFrom;
+    }
+
+    private int GetTotalPlannedAmount(int productId)
+    {
+        return allProductLocations
+            .Where(pl => pl.ProductId == productId)
+            .Sum(pl => pl.PlannedAmount);
+    }
+
     private IEnumerable<FestHubCentral.Web.Data.Models.Inventory> GetPagedInventory()
     {
-        return filteredInventory
+        return GetFilteredInventory()
             .Skip((currentPage - 1) * pageSize)
             .Take(pageSize);
     }
@@ -328,5 +588,53 @@
     private void NavigateToDetail(int productId)
     {
         Navigation.NavigateTo($"/inventory/{productId}");
+    }
+
+    private void ShowEditModal(FestHubCentral.Web.Data.Models.Inventory inventory)
+    {
+        editProductId = inventory.Product.Id;
+        editProductName = inventory.Product.Name;
+        editProductDescription = inventory.Product.Description ?? string.Empty;
+        editProductUnit = inventory.Product.Unit;
+        editProductSupplierId = inventory.Product.SupplierId;
+        editProductCanRestock = inventory.Product.CanRestock;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        editProductId = 0;
+        editProductName = string.Empty;
+        editProductDescription = string.Empty;
+        editProductUnit = string.Empty;
+        editProductSupplierId = 0;
+        editProductCanRestock = true;
+    }
+
+    private bool CanSaveProduct()
+    {
+        return !string.IsNullOrWhiteSpace(editProductName) &&
+               !string.IsNullOrWhiteSpace(editProductUnit) &&
+               editProductSupplierId > 0;
+    }
+
+    private async Task SaveProduct()
+    {
+        if (!CanSaveProduct()) return;
+
+        var product = await DbContext.Products.FindAsync(editProductId);
+        if (product == null) return;
+
+        product.Name = editProductName.Trim();
+        product.Description = string.IsNullOrWhiteSpace(editProductDescription) ? null : editProductDescription.Trim();
+        product.Unit = editProductUnit.Trim();
+        product.SupplierId = editProductSupplierId;
+        product.CanRestock = editProductCanRestock;
+        product.UpdatedAt = DateTime.UtcNow;
+
+        await DbContext.SaveChangesAsync();
+        await LoadInventory();
+        CloseEditModal();
     }
 }

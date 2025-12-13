@@ -21,7 +21,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Inventory> Inventories => Set<Inventory>();
     public DbSet<InventoryTransfer> InventoryTransfers => Set<InventoryTransfer>();
     public DbSet<TransferRequest> TransferRequests => Set<TransferRequest>();
-    public DbSet<Alert> Alerts => Set<Alert>();
     public DbSet<CashRegister> CashRegisters => Set<CashRegister>();
     public DbSet<Settings> Settings => Set<Settings>();
     public DbSet<QRCode> QRCodes => Set<QRCode>();
@@ -159,17 +158,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
-
-        modelBuilder.Entity<Alert>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => new { e.IsResolved, e.CreatedAt });
-
-            entity.HasOne(e => e.Location)
-                .WithMany()
-                .HasForeignKey(e => e.LocationId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 

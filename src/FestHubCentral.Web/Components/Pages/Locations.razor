@@ -14,10 +14,9 @@
 <PageTitle>@Localizer["Nav.Vendors"].Value</PageTitle>
 
 <div class="container-fluid">
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col">
-            <h1>🏪 @Localizer["Nav.Vendors"].Value (@currentEventYear)</h1>
-            <p class="text-muted">Manage festival food and beverage locations</p>
+            <h2>🏪 @Localizer["Nav.Vendors"].Value (@currentEventYear)</h2>
         </div>
         <div class="col-auto">
             <button class="btn btn-primary" @onclick="ShowAddLocationForm">
@@ -42,19 +41,19 @@
                 <tbody>
                     @foreach (var location in GetPagedLocations())
                     {
-                        <tr>
+                        <tr style="cursor: pointer;" @onclick="() => ViewLocation(location.Id)">
                             <td><strong>@location.Name</strong></td>
                             <td><span class="badge bg-info">@location.Category</span></td>
-                            <td>
+                            <td @onclick:stopPropagation="true">
                                 @if (location.Latitude.HasValue && location.Longitude.HasValue)
                                 {
-                                    <a href="https://www.google.com/maps?q=@location.Latitude,@location.Longitude" target="_blank" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-geo-alt"></i> View Map
+                                    <a href="https://www.google.com/maps?q=@location.Latitude,@location.Longitude" target="_blank" class="btn btn-sm btn-outline-success" title="View Map">
+                                        <i class="bi bi-geo-alt"></i>
                                     </a>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">No GPS</span>
+                                    <span class="text-muted">-</span>
                                 }
                             </td>
                             <td>
@@ -65,21 +64,16 @@
                                 }
                                 else
                                 {
-                                    <span class="text-muted">No contact</span>
+                                    <span class="text-muted">-</span>
                                 }
                             </td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewLocation(location.Id)">
-                                        <i class="bi bi-eye"></i> Show
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditLocation(location)">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveLocation(location.Id)">
-                                        <i class="bi bi-trash"></i> Remove
-                                    </button>
-                                </div>
+                            <td @onclick:stopPropagation="true" style="white-space: nowrap;">
+                                <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditLocation(location)" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveLocation(location.Id)" title="Remove">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </td>
                         </tr>
                     }

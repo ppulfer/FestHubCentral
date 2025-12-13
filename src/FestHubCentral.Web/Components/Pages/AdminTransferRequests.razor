@@ -10,14 +10,14 @@
 <PageTitle>Transfer Requests Management</PageTitle>
 
 <div class="container-fluid">
-    <nav aria-label="breadcrumb" class="mb-4">
+    <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item active">Transfer Requests</li>
         </ol>
     </nav>
 
-    <h1>Transfer Requests Management</h1>
+    <h2 class="mb-3">Transfer Requests Management</h2>
 
     <div class="row mb-4">
         <div class="col-md-3">
@@ -131,6 +131,7 @@
                             <th>To</th>
                             <th>Product</th>
                             <th>Amount</th>
+                            <th>Transfer ID</th>
                             <th>Approved By</th>
                             <th>Approved Date</th>
                         </tr>
@@ -143,6 +144,16 @@
                                 <td>@(request.ToLocation?.Name ?? "Warehouse")</td>
                                 <td>@request.Product?.Name</td>
                                 <td>@request.Amount</td>
+                                <td>
+                                    @if (request.ApprovedByInventoryTransferId.HasValue)
+                                    {
+                                        <span class="badge bg-info">#@request.ApprovedByInventoryTransferId</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
                                 <td>@(request.ReviewedByUser?.DisplayName ?? request.ReviewedByUser?.Email)</td>
                                 <td>@request.ReviewedAt?.ToString("dd.MM.yyyy HH:mm")</td>
                             </tr>
